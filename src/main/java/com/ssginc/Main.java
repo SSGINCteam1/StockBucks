@@ -1,7 +1,11 @@
 package com.ssginc;
 
+import com.ssginc.login.view.LoginUI;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        LoginUI loginUI = new LoginUI();
+
+        loginUI.loginMenu();
     }
 }
