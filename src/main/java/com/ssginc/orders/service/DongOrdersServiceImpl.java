@@ -2,32 +2,33 @@ package com.ssginc.orders.service;
 
 import com.ssginc.orders.model.dao.DongOrdersDAO;
 import com.ssginc.orders.model.dto.OrderDetailsDTO;
+import com.ssginc.orders.model.dto.OrdersSelectDTO;
 import com.ssginc.util.HikariCPDataSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.ArrayList;
 
-public class dongOrdersServiceImpl implements dongOrdersService {
+public class DongOrdersServiceImpl implements DongOrdersService {
     DongOrdersDAO dongOrdersDAO;
     DataSource dataSource;
 
-    public dongOrdersServiceImpl(){
+    public DongOrdersServiceImpl(){
         dongOrdersDAO = new DongOrdersDAO();
         dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
 
 
     @Override
-    public ArrayList<OrderDetailsDTO> selectOrderDetailsList() {
-        ArrayList<OrderDetailsDTO> orderDetailsList = null;
+    public ArrayList<OrdersSelectDTO> selectOrderList() {
+        ArrayList<OrdersSelectDTO> orders = null;
 
         try(Connection conn = dataSource.getConnection()){
-            orderDetailsList = dongOrdersDAO.selectOrderDetailsList(conn);
+            orders = dongOrdersDAO.selectOrderDetailsList(conn);
         } catch (Exception e){
             e.printStackTrace();
         }
-        return orderDetailsList;
+        return orders;
     }
 
     @Override
