@@ -2,30 +2,27 @@ package com.ssginc.orders.service;
 
 import com.ssginc.orders.model.dao.OrdersDAO;
 import com.ssginc.orders.model.vo.OrdersVO;
-import com.ssginc.util.DBConnectionMgr;
+import com.ssginc.util.HikariCPDataSource;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.ArrayList;
 
 public class OrdersServiceImpl implements OrdersService {
     OrdersDAO ordersDAO = new OrdersDAO();
+    DataSource dataSource;
 
-    Connection con;
-    DBConnectionMgr dbcp;
 
     public OrdersServiceImpl(){
-        dbcp = new DBConnectionMgr();
+        dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
 
     @Override
     public ArrayList<OrdersVO> selectOrdersList() {
         ArrayList<OrdersVO> list = null;
 
-        try {
-            con = dbcp.getConnection();
-
+        try(Connection con = dataSource.getConnection()) {
             list = ordersDAO.selectOrdersList(con);
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
