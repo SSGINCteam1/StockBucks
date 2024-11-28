@@ -14,10 +14,16 @@ dependencies {
     implementation 'mysql:mysql-connector-java:8.0.33'
     // MongoDB
     implementation 'org.mongodb:mongo-java-driver:3.12.14'
-
+    // Hikari(DBCP)
+    implementation 'com.zaxxer:HikariCP:5.0.1'
     // Lombok
     implementation 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    // SLF4J API
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    // Logback Classic (SLF4J 구현체)
+    implementation 'ch.qos.logback:logback-classic:1.4.11'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

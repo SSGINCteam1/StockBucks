@@ -2,49 +2,39 @@ package com.ssginc.login.service;
 
 import com.ssginc.login.model.dao.LoginDAO;
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.login.model.vo.UsersVO;
-import com.ssginc.util.DBConnectionMgr;
+import com.ssginc.login.model.dto.UsersDTOTest;
+import com.ssginc.util.HikariCPDataSource;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 
 public class LoginServiceImpl implements LoginService {
+//    DBConnectionMgr dbcp;
+    DataSource dataSource;
 
-    Connection con;
-    DBConnectionMgr dbcp;
-
-    LoginDAO loginDAO = new LoginDAO();
+    LoginDAO loginDAO;
 
     public LoginServiceImpl() {
-        dbcp = new DBConnectionMgr();
+//        dbcp =  new DBConnectionMgr(); // 싱글톤 인스턴스 활용
+        loginDAO = new LoginDAO();
+        dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
 
     @Override
-    public int insertUsers(UsersDTO user) {
+    public int insertUsers(UsersDTOTest user) {
         int res = 0;
-        try {
-            con = dbcp.getConnection();
+        try(Connection con = dataSource.getConnection()) {
             res = loginDAO.insertUsers(con, user);
-
-            if (res == 1) {
-                con.commit();
-                System.out.println("회원가입이 성공했습니다.");
-            } else {
-                con.rollback();
-                System.out.println("회원가입이 실패했습니다. 다시 시도해주세요.");
-            }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
         return res;
     }
 
     @Override
     public UsersDTO matchUsersId(String id) {
         UsersDTO user = null;
-        try {
-            con = dbcp.getConnection();
+        try(Connection con = dataSource.getConnection()) {
             user = loginDAO.matchUsersId(con, id);
         } catch (Exception e) {
             throw new RuntimeException(e);

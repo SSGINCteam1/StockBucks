@@ -1,13 +1,10 @@
 package com.ssginc.login.model.dao;
 
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.login.model.vo.UsersVO;
-import com.ssginc.util.DBConnectionMgr;
-
+import com.ssginc.login.model.dto.UsersDTOTest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class LoginDAO {
 
@@ -17,19 +14,20 @@ public class LoginDAO {
      * @param user
      * @return
      */
-    public int insertUsers(Connection con, UsersDTO user) {
+    public int insertUsers(Connection con, UsersDTOTest user) {
         PreparedStatement ps = null;
         int res = 0;
 
-        String sql = "insert into users (users_id, users_pw, users_role, users_name) values (?,?,?,?)";
+        String sql = "insert into users (users_id, users_pw, users_role, users_name, users_birth) values (?,?,?,?,?)";
 
         try {
             ps = con.prepareStatement(sql);
 
             ps.setString(1, user.getUsersId());
             ps.setString(2, user.getUsersPw());
-            ps.setString(3, user.getUsersRole());
+            ps.setInt(3, user.getUsersRole());
             ps.setString(4, user.getUsersName());
+            ps.setString(5, user.getUsersBirth());
 
             res = ps.executeUpdate();
 
@@ -51,7 +49,7 @@ public class LoginDAO {
         PreparedStatement ps = null;
         ResultSet rset = null;
 
-        String sql = "select * from users where users_id = ? and is_active = true ";
+        String sql = "select * from users where users_id = ? and is_active = 1 ";
 
         try {
             ps = con.prepareStatement(sql);
