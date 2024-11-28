@@ -1,0 +1,137 @@
+2024-11-28 10:54:52 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 10:54:52 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1e8b7643
+2024-11-28 10:54:52 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 10:57:19 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 10:57:20 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1e8b7643
+2024-11-28 10:57:20 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:34:56 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:34:57 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1e8b7643
+2024-11-28 11:34:57 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:41:19 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:41:19 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1e8b7643
+2024-11-28 11:41:19 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - Driver class com.mysql.cj.jdbc.Driver found in Thread context class loader jdk.internal.loader.ClassLoaders$AppClassLoader@4e25154f
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - HikariPool-1 - configuration:
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - allowPoolSuspension.............false
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - autoCommit......................true
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - catalog.........................none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - connectionInitSql...............none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - connectionTestQuery.............none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - connectionTimeout...............30000
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - dataSource......................none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - dataSourceClassName.............none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - dataSourceJNDI..................none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - dataSourceProperties............{password=<masked>}
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - driverClassName................."com.mysql.cj.jdbc.Driver"
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - exceptionOverrideClassName......none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - healthCheckProperties...........{}
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - healthCheckRegistry.............none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - idleTimeout.....................30000
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - initializationFailTimeout.......1
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - isolateInternalQueries..........false
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - jdbcUrl.........................jdbc:mysql://localhost:3306/stockBucks
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - keepaliveTime...................0
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - leakDetectionThreshold..........0
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - maxLifetime.....................1800000
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - maximumPoolSize.................1000
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - metricRegistry..................none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - metricsTrackerFactory...........none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - minimumIdle.....................2
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - password........................<masked>
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - poolName........................"HikariPool-1"
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - readOnly........................false
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - registerMbeans..................false
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - scheduledExecutor...............none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - schema..........................none
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - threadFactory...................internal
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - transactionIsolation............default
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - username........................"root"
+2024-11-28 11:42:46 DEBUG com.zaxxer.hikari.HikariConfig - validationTimeout...............5000
+2024-11-28 11:42:46 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:42:47 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@7a67e3c6
+2024-11-28 11:42:47 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:42:47 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Before cleanup stats (total=1, active=0, idle=1, waiting=0)
+2024-11-28 11:42:47 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After cleanup  stats (total=1, active=0, idle=1, waiting=0)
+2024-11-28 11:42:47 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@267a3a8b
+2024-11-28 11:42:47 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After adding stats (total=2, active=0, idle=2, waiting=0)
+2024-11-28 11:43:17 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Before cleanup stats (total=2, active=0, idle=2, waiting=0)
+2024-11-28 11:43:17 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After cleanup  stats (total=2, active=0, idle=2, waiting=0)
+2024-11-28 11:43:17 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled (queueDepth=0).
+2024-11-28 11:43:47 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Before cleanup stats (total=2, active=0, idle=2, waiting=0)
+2024-11-28 11:43:47 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After cleanup  stats (total=2, active=0, idle=2, waiting=0)
+2024-11-28 11:43:47 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled (queueDepth=0).
+2024-11-28 11:44:17 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Before cleanup stats (total=2, active=0, idle=2, waiting=0)
+2024-11-28 11:44:17 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - After cleanup  stats (total=2, active=0, idle=2, waiting=0)
+2024-11-28 11:44:17 DEBUG com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Fill pool skipped, pool has sufficient level or currently being filled (queueDepth=0).
+2024-11-28 11:44:42 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:44:43 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 11:44:43 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:46:12 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:46:13 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 11:46:13 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:46:17 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:46:18 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 11:46:18 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:47:00 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:47:00 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 11:47:00 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 11:48:47 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 11:48:48 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 11:48:48 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:03:12 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:03:12 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:03:12 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:03:49 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:03:49 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@36a5cabc
+2024-11-28 12:03:49 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:04:26 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:04:26 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@36a5cabc
+2024-11-28 12:04:26 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:05:19 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:05:19 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:05:19 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:07:23 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:07:23 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:07:23 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:13:23 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:13:24 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:13:24 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:14:35 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:14:36 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:14:36 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:15:10 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:15:10 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:15:10 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:15:32 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:15:33 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:15:33 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:17:17 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:17:17 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:17:17 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:18:15 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:18:15 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:18:15 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:18:44 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:18:45 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:18:45 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:19:11 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:19:12 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:19:12 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:19:41 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:19:42 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:19:42 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:20:55 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:20:56 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:20:56 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:21:35 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:21:35 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:21:35 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:23:35 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:23:36 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:23:36 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:26:50 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:26:50 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:26:50 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-11-28 12:32:43 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-11-28 12:32:43 INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51549490
+2024-11-28 12:32:43 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
