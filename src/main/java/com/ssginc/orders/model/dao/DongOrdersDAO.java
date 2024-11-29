@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DongOrdersDAO {
     /**
@@ -14,7 +15,7 @@ public class DongOrdersDAO {
      * @param conn
      * @return
      */
-    public ArrayList<OrdersSelectDTO> selectOrderDetailsList(Connection conn) {
+    public List<OrdersSelectDTO> selectOrderDetailsList(Connection conn) {
         PreparedStatement ps = null;
         ResultSet rs = null;
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
@@ -44,5 +45,22 @@ public class DongOrdersDAO {
         }
 
         return orders;
+    }
+
+    /**
+     *
+     * @param conn : Connection 객체
+     * @param date : 조회할 기간(ex. 2024-11)
+     * @return
+     */
+    public List<OrdersSelectDTO> selectOrderListByPeriod(Connection conn, String date) {
+       PreparedStatement ps = null;
+       ResultSet rs = null;
+       ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
+
+       String sql = "";
+
+
+       return orders;
     }
 }
