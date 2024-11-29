@@ -10,7 +10,6 @@
     <!-- 루트 로거 설정 -->
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
     </root>
 
     <logger name="com.zaxxer.hikari" level="INFO"/>
