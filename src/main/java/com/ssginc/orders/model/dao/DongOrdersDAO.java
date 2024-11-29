@@ -16,8 +16,6 @@ public class DongOrdersDAO {
      * @return
      */
     public List<OrdersSelectDTO> selectOrderDetailsList(Connection conn) {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
         String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL " +
@@ -25,8 +23,8 @@ public class DongOrdersDAO {
                 "JOIN USERS USING (USERS_NO)";
 
         try {
-            ps = conn.prepareStatement(sql);
-            rs = ps.executeQuery();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 orders.add(mapToOrdersSelectDTO(rs));
             }
@@ -38,15 +36,13 @@ public class DongOrdersDAO {
 
     // 년도별 주문 내역 목록 조회
     public List<OrdersSelectDTO> selectOrderListByYear(Connection conn, String year) {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
         String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL FROM ORDERS WHERE YEAR(ORDERS_DATE) = ?";
         try {
-            ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, year);
-            rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 orders.add(mapToOrdersSelectDTO(rs));
@@ -60,20 +56,18 @@ public class DongOrdersDAO {
 
     // 월별 주문 내역 목록 조회
     public List<OrdersSelectDTO> selectOrderListByMonth(Connection conn, String year, String month) {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
         String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL FROM ORDERS WHERE YEAR(ORDERS_DATE) = ? " +
                                             "AND MONTH(ORDERS_DATE) = ?";
 
         try {
-            ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setString(1, year);
             ps.setString(2, month);
 
-            rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 orders.add(mapToOrdersSelectDTO(rs));
@@ -88,8 +82,6 @@ public class DongOrdersDAO {
 
     // 일자별 주문 내역 목록 조회
     public List<OrdersSelectDTO> selectOrderListByDay(Connection conn, String year, String month, String day) {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
         String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL " +
@@ -99,13 +91,13 @@ public class DongOrdersDAO {
                                                 "AND DAY(ORDERS_DATE) = ?";
 
         try {
-            ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setString(1, year);
             ps.setString(2, month);
             ps.setString(3, day);
 
-            rs = ps.executeQuery();
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                     orders.add(mapToOrdersSelectDTO(rs));

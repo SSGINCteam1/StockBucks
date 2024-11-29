@@ -15,13 +15,12 @@ public class LoginDAO {
      * @return
      */
     public int insertUsers(Connection con, UsersDTOTest user) {
-        PreparedStatement ps = null;
         int res = 0;
 
         String sql = "insert into users (users_id, users_pw, users_role, users_name, users_birth) values (?,?,?,?,?)";
 
         try {
-            ps = con.prepareStatement(sql);
+            PreparedStatement ps = con.prepareStatement(sql);
 
             ps.setString(1, user.getUsersId());
             ps.setString(2, user.getUsersPw());
@@ -44,19 +43,16 @@ public class LoginDAO {
      * @return
      */
     public UsersDTO matchUsersId(Connection con, String id) {
-
         UsersDTO user = null;
-        PreparedStatement ps = null;
-        ResultSet rset = null;
 
         String sql = "select * from users where users_id = ? and is_active = 1 ";
 
         try {
-            ps = con.prepareStatement(sql);
+            PreparedStatement ps = con.prepareStatement(sql);
 
             ps.setString(1, id);
 
-            rset = ps.executeQuery();
+            ResultSet rset = ps.executeQuery();
 
             if (rset.next()) {
                 user = UsersDTO.builder()
