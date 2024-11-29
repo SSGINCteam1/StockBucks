@@ -7,7 +7,7 @@ import java.sql.Date;
 
 @Data
 @Builder
-public class ProductionVO { //제조상품 테이블
+public class ProductsVO { //제조상품 테이블
     private int pNo; //제조상품 id
     private String pName; //제조상품 이름
     private int pPrice; //제조상품 가격

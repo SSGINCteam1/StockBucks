@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class ProductionDTO {
+public class ProductsDTO {
     // 제조 상품 관련 DTO
     private int pno; // 제조 상품 번호
     private String pname; // 제조 상품 며
