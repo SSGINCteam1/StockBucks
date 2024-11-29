@@ -9,13 +9,10 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 
 public class LoginServiceImpl implements LoginService {
-//    DBConnectionMgr dbcp;
     DataSource dataSource;
-
     LoginDAO loginDAO;
 
     public LoginServiceImpl() {
-//        dbcp =  new DBConnectionMgr(); // 싱글톤 인스턴스 활용
         loginDAO = new LoginDAO();
         dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
@@ -26,7 +23,7 @@ public class LoginServiceImpl implements LoginService {
         try(Connection con = dataSource.getConnection()) {
             res = loginDAO.insertUsers(con, user);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         return res;
     }
@@ -37,7 +34,7 @@ public class LoginServiceImpl implements LoginService {
         try(Connection con = dataSource.getConnection()) {
             user = loginDAO.matchUsersId(con, id);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         return user;
     }
