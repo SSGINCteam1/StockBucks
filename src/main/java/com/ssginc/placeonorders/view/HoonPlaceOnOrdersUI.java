@@ -1,4 +1,4 @@
-package com.ssginc.placeonorders.service;
+package com.ssginc.placeonorders.view;
 
 import com.ssginc.common.view.CommonUI;
 import com.ssginc.placeonorders.model.dao.HoonPlaceOnOrdersDAO;
