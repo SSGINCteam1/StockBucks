@@ -1,5 +1,6 @@
 package com.ssginc.orders.model.dao;
 
+import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.orders.model.dto.OptionsDTO;
 import com.ssginc.orders.model.dto.OrderDetailsDTO;
 import com.ssginc.orders.model.dto.OrdersSelectDTO;
@@ -7,28 +8,35 @@ import com.ssginc.orders.model.dto.ProductsDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 public class TimOrdersDAO {
+
+    // =================================== 4. 주문 내역 조회 ===================================
+
+    // ---------------------- 4.1. 전체 주문 내역 조회 ----------------------
+
     /**
      * 전체 주문 내역 조회
      * @param conn
      * @return
      */
-    public ArrayList<OrdersSelectDTO> selectOrderList(Connection conn, int offset) {
+    public ArrayList<OrdersSelectDTO> selectOrderList(Connection conn, int pageSize, int offset) {
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
         String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL " +
                 "FROM ORDERS " +
                 "JOIN USERS USING (USERS_NO) " +
                 "ORDER BY ORDERS_NO " +
-                "LIMIT 9 OFFSET ?";
+                "LIMIT ? OFFSET ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, offset);
+            ps.setInt(1, pageSize);
+            ps.setInt(2, offset);
 
             try(ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -43,85 +51,7 @@ public class TimOrdersDAO {
         return orders;
     }
 
-    // 년도별 주문 내역 목록 조회
-    public ArrayList<OrdersSelectDTO> selectOrderListByYear(Connection conn, String year) {
-        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
-
-        String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL FROM ORDERS WHERE YEAR(ORDERS_DATE) = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, year);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    orders.add(mapToOrdersSelectDTO(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return orders;
-    }
-
-    // 월별 주문 내역 목록 조회
-    public ArrayList<OrdersSelectDTO> selectOrderListByMonth(Connection conn, String year, String month) {
-        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
-
-        String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL FROM ORDERS WHERE YEAR(ORDERS_DATE) = ? " +
-                                            "AND MONTH(ORDERS_DATE) = ?";
-
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, year);
-            ps.setString(2, month);
-
-            try (ResultSet rs = ps.executeQuery()){
-                while (rs.next()) {
-                    orders.add(mapToOrdersSelectDTO(rs));
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        return orders;
-    }
-
-    // 일자별 주문 내역 목록 조회
-    public ArrayList<OrdersSelectDTO> selectOrderListByDay(Connection conn, String year, String month, String day) {
-        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
-
-        String sql = "SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL " +
-                    "FROM ORDERS " +
-                    "WHERE YEAR(ORDERS_DATE) = ? " +
-                                                "AND MONTH(ORDERS_DATE) = ?" +
-                                                "AND DAY(ORDERS_DATE) = ?";
-
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, year);
-            ps.setString(2, month);
-            ps.setString(3, day);
-
-            try(ResultSet rs = ps.executeQuery()){
-                while (rs.next()) {
-                        orders.add(mapToOrdersSelectDTO(rs));
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return orders;
-    }
-    
-    // 쿼리문 결과를 OrdersSelectDTO 객체로 매핑해주는 메서드
-    private OrdersSelectDTO mapToOrdersSelectDTO(ResultSet rs) throws SQLException {
-        return OrdersSelectDTO.builder()
-                .orderNo(rs.getInt("orders_no"))
-                .orderDate(rs.getString("orders_date"))
-                .userName(rs.getString("users_name"))
-                .totalPrice(rs.getInt("orders_total"))
-                .build();
-    }
-
-    public int selectOrdersAllRownum(Connection conn) {
+    public int selectOrdersListRownumAll(Connection conn) {
 
         int res = 0;
 
@@ -141,9 +71,416 @@ public class TimOrdersDAO {
         return res;
     }
 
+    // ---------------------- 4.2. 기간별 주문 내역 조회 ----------------------
+    // 년도별 주문 내역 목록 조회
+    public ArrayList<OrdersSelectDTO> selectOrderListByYear(Connection conn, int year, int pageSize, int offset) {
+        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
+
+        String sql = """
+                SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL 
+                FROM ORDERS 
+                JOIN (USERS) USING (USERS_NO)
+                WHERE YEAR(ORDERS_DATE) = ?
+                ORDER BY ORDERS_DATE
+                LIMIT ? OFFSET ?
+                 """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapToOrdersSelectDTO(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return orders;
+    }
+    
+    // 월별 주문 내역 목록 조회
+    public ArrayList<OrdersSelectDTO> selectOrderListByMonth(Connection conn, int year, int month, int pageSize, int offset) {
+        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
+
+        String sql = """
+                SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL 
+                FROM ORDERS 
+                JOIN (USERS) USING (USERS_NO)
+                WHERE YEAR(ORDERS_DATE) = ?
+                AND MONTH(ORDERS_DATE) = ?
+                ORDER BY ORDERS_DATE
+                LIMIT ? OFFSET ?
+                 """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, year);
+            ps.setInt(2, month);
+            ps.setInt(3, pageSize);
+            ps.setInt(4, offset);
+
+            try (ResultSet rs = ps.executeQuery()){
+                while (rs.next()) {
+                    orders.add(mapToOrdersSelectDTO(rs));
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return orders;
+    }
+    
+    // 일자별 주문 내역 목록 조회
+    public ArrayList<OrdersSelectDTO> selectOrderListByDay(Connection conn, int year, int month, int day, int pageSize, int offset) {
+        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
+
+        String sql = """
+                SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL 
+                FROM ORDERS 
+                JOIN (USERS) USING (USERS_NO)
+                WHERE YEAR(ORDERS_DATE) = ?
+                AND MONTH(ORDERS_DATE) = ?
+                AND DAY(ORDERS_DATE) = ?
+                ORDER BY ORDERS_DATE
+                LIMIT ? OFFSET ?
+                 """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ps.setInt(2, month);
+            ps.setInt(3, day);
+            ps.setInt(4, pageSize);
+            ps.setInt(5, offset);
+
+            try(ResultSet rs = ps.executeQuery()){
+                while (rs.next()) {
+                        orders.add(mapToOrdersSelectDTO(rs));
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return orders;
+    }
+
+    public int selectOrdersListRownumByDay(Connection conn, int year, int month, int day) {
+        int res = 0;
+
+        String sql = """
+                SELECT COUNT(ORDERS_NO) 
+                FROM ORDERS
+                WHERE YEAR(ORDERS_DATE) = ?
+                    AND MONTH(ORDERS_DATE) = ?
+                    AND DAY(ORDERS_DATE) = ?
+                """;
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ps.setInt(2, month);
+            ps.setInt(3, day);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return res;
+    }
+
+    public int selectOrdersListRownumByMonth(Connection conn, int year, int month) {
+        int res = 0;
+
+        String sql = """
+                SELECT COUNT(ORDERS_NO) 
+                FROM ORDERS
+                WHERE YEAR(ORDERS_DATE) = ?
+                    AND MONTH(ORDERS_DATE) = ?
+                """;
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+            ps.setInt(2, month);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return res;
+    }
+
+    public int selectOrdersListRownumByYear(Connection conn, int year) {
+        int res = 0;
+
+        String sql = """
+                SELECT COUNT(ORDERS_NO) 
+                FROM ORDERS
+                WHERE YEAR(ORDERS_DATE) = ?
+                """;
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return res;
+    }
+
+
+    // ---------------------- 4.3. 유저별 주문 내역 조회 ----------------------
+
+    public ArrayList<UsersDTO> selectUsersListByUsersName(Connection conn, String username, int pageSize, int offset) {
+        ArrayList<UsersDTO> res = new ArrayList<>();
+
+        String sql = """
+                    SELECT USERS_NO, USERS_NAME, USERS_BIRTH
+                    FROM USERS
+                    WHERE USERS_NAME = ?
+                    ORDER BY USERS_BIRTH
+                    LIMIT ? OFFSET ?
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setString(1, username);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
+            try(ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    res.add(UsersDTO.builder()
+                                    .usersNo(rs.getInt("users_no"))
+                                    .usersName(rs.getString("users_name"))
+                                    .usersBirth(rs.getString("users_birth"))
+                                .build()
+                    );
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    public int selectUsersListRownumByUsersName(Connection conn, String userName) {
+        int res = 0;
+
+        String sql = """
+                    SELECT COUNT(USERS_NO)
+                    FROM USERS
+                    WHERE USERS_NAME = ?
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setString(1, userName);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    public int selectOrdersListRownumByUsers(Connection conn, int usersNo) {
+        int res = 0;
+
+        String sql = """
+                SELECT COUNT(ORDERS_NO)
+                FROM ORDERS
+                WHERE USERS_NO = ?
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, usersNo);
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    public ArrayList<OrdersSelectDTO> selectOrdersListByUsers(Connection conn,  int usersNo, int pageSize, int offset) {
+
+        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
+
+        String sql = """
+                SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL
+                FROM ORDERS
+                JOIN USERS U USING (USERS_NO)
+                WHERE U.USERS_NO = ? 
+                ORDER BY ORDERS_NO
+                LIMIT ? OFFSET ?
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setInt(1, usersNo);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                while (rs.next()){
+                    orders.add(mapToOrdersSelectDTO(rs));
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return orders;
+
+    }
+
+
+    // ---------------------- 4.4. 사용자 정의 주문 내역 조회 ----------------------
+
+    public int selectOrdersListRownumByCustom(Connection conn, String startDate, String endDate) {
+
+        int res = 0;
+
+        String sql = """
+                SELECT COUNT(ORDERS_NO)
+                FROM ORDERS
+                WHERE ORDERS_DATE >= ? AND ORDERS_DATE <= ?
+               """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+
+            ps.setString(1, startDate);
+            ps.setString(2, endDate);
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+
+    }
+
+    public ArrayList<OrdersSelectDTO> selectOrdersListByCustom(Connection conn, LocalDate start, LocalDate end, int pageSize, int offset) {
+        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
+
+        String sql = """
+                    SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL
+                    FROM ORDERS
+                    JOIN USERS U USING (USERS_NO)
+                    WHERE ORDERS_DATE >= ? AND ORDERS_DATE <= ?
+                    LIMIT ? OFFSET ?
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setDate(1, Date.valueOf(start));
+            ps.setDate(2, Date.valueOf(end));
+            ps.setInt(3, pageSize);
+            ps.setInt(4, offset);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapToOrdersSelectDTO(rs));
+                }
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return orders;
+
+    }
+
+    public int selectOrdersListRownumByCustomAndUsersNo(Connection conn, int usersNo, LocalDate start, LocalDate end) {
+
+        int res = 0;
+
+        String sql = """
+                SELECT COUNT(ORDERS_NO)
+                FROM ORDERS
+                WHERE USERS_NO = ?
+                AND (ORDERS_DATE >= ? AND ORDERS_DATE <= ?)
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, usersNo);
+            ps.setDate(2, Date.valueOf(start));
+            ps.setDate(3, Date.valueOf(end));
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+
+    }
+
+    public ArrayList<OrdersSelectDTO> selectOrderListByCustomAndUsersNo(Connection conn, int usersNo, LocalDate start, LocalDate end, int pageSize, int offset) {
+
+        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
+
+        String sql = """
+                SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL
+                FROM ORDERS
+                JOIN USERS U USING (USERS_NO)
+                WHERE USERS_NO = ?
+                AND (ORDERS_DATE >= ? AND ORDERS_DATE <= ?)
+                LIMIT ? OFFSET ?
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, usersNo);
+            ps.setDate(2, Date.valueOf(start));
+            ps.setDate(3, Date.valueOf(end));
+            ps.setInt(4, pageSize);
+            ps.setInt(5, offset);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapToOrdersSelectDTO(rs));
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return orders;
+
+    }
+
+
+    // ---------------------- 4.5. 주문 내역 조회 유틸 메서드 ----------------------
+    
+    // 주문 세부 객체 select
     public OrderDetailsDTO selectOrdersDetails(Connection conn, int orderNo) {
         List<ProductsDTO> products = new ArrayList<>(); // 제품 리스트
 
+        //  자바17부터는 """ 로 텍스트 블록 정의 가능
         String sql = """
         SELECT opd.ord_prd_no, opd.p_no, opd.opd_quantity, p.p_name, p.p_price, oopt.opt_no, oopt.oropt_name, oopt.oropt_price, oopt.oropt_quantity
         FROM ORDERS o
@@ -206,10 +543,26 @@ public class TimOrdersDAO {
         } catch (SQLException e) {
             e.printStackTrace(); // 프로덕션 환경에서는 로깅 사용
         }
-        
+
         // 최종 결과에 반영
         return OrderDetailsDTO.builder()
                 .products(products) // 제품 리스트 설정
                 .build();
     }
+
+    // 쿼리문 결과를 OrdersSelectDTO 객체로 매핑해주는 메서드
+    private OrdersSelectDTO mapToOrdersSelectDTO(ResultSet rs) throws SQLException {
+        return OrdersSelectDTO.builder()
+                .orderNo(rs.getInt("orders_no"))
+                .orderDate(rs.getString("orders_date"))
+                .userName(rs.getString("users_name"))
+                .totalPrice(rs.getInt("orders_total"))
+                .build();
+    }
+
+    
+    
+    // =================================== 5. 품목 판매 중지 ===================================
+    
+    
 }
