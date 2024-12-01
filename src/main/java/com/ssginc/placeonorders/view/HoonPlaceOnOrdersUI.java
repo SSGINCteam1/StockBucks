@@ -11,6 +11,7 @@ public class HoonPlaceOnOrdersUI {
 
     private final HoonPlaceOnOrdersDAO placeOnOrdersDAO;
     private final Scanner sc;
+    String[] category = {"디저트", "MD", "일회용품", "원자재", "병음료", "원두"};
 
     public HoonPlaceOnOrdersUI() {
         this.sc = new Scanner(System.in);
@@ -59,7 +60,6 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 재고 조회 메뉴
-
     public void selectStockList() {
         System.out.println("===================================");
         System.out.println("[재고 조회]");
@@ -72,12 +72,28 @@ public class HoonPlaceOnOrdersUI {
         switch (choice) {
             case 1:
                 result = placeOnOrdersDAO.selectAllStockList();
+
+                if (result == null) {
+                    // CommonUI의 메서드로 빼는 것도 좋을 거 같다고 생각
+                    System.out.println("조회된 결과가 없습니다.");
+                    break;
+                }
+
                 title = "[재고 전체 조회]";
-                printStockList(result, title);
+                this.printStockList(result, title);
                 break;
             case 2:
-                System.out.println("카테고리별 재고 조회 메뉴입니다.");
-                System.out.println("해당 기능은 아직 구현 중입니다.");
+                int categoryNum = selectCategory();
+                result = placeOnOrdersDAO.selectStockListByCategory(categoryNum);
+
+                if (result == null) {
+                    // CommonUI의 메서드로 빼는 것도 좋을 거 같다고 생각
+                    System.out.println("조회된 결과가 없습니다.");
+                    break;
+                }
+
+                title = "[재고 카테고리별 조회]";
+                this.printStockList(result, title);
                 break;
             case 3:
                 System.out.println("키워드 검색 재고 조회 메뉴입니다.");
@@ -90,13 +106,13 @@ public class HoonPlaceOnOrdersUI {
         }
     }
 
+    // 재고 리스트 출력 메서드
     public void printStockList(List<HoonSelectStockListDTO> stockList, String title) {
         System.out.println("===================================");
         System.out.println(title);
         System.out.printf("%-8s%-20s%-15s%-15s%-10s\n", "제품번호", "제품명", "재고수량", "제품 카테고리", "제품 단위");
         System.out.println("---------------------------------------------");
 
-        String[] category = {"디저트", "MD", "일회용품", "원자재", "병음료", "원두"};
         for (HoonSelectStockListDTO stock : stockList) {
             System.out.printf("%-10s%-20s%-15s%-15s%-10s\n",
                     stock.getStNo(),
@@ -105,5 +121,17 @@ public class HoonPlaceOnOrdersUI {
                     category[stock.getStCategory()],
                     stock.getStUnit());
         }
+    }
+
+    // 카테고리 입력 메서드
+    public int selectCategory() {
+        System.out.println("===================================");
+        for (int i = 0; i < category.length; i++) {
+            System.out.print((i + 1) + ". " + category[i] + "\t\t");
+        }
+        System.out.println();
+        System.out.print(">> ");
+
+        return sc.nextInt();
     }
 }
