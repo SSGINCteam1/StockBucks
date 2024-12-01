@@ -116,14 +116,13 @@ public class PlaceOnOrdersDAO {
 
     public ArrayList<PlaceonOrdersCheckDTO> selectAllOrderableStockChecks(Connection con) {
         ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
-        String sql = "SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, (s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name" +
-       "FROM place_orders_stock post" +
-        "INNER JOIN stock s" +
-        "ON post.st_no = s.st_no" +
-        "INNER JOIN place_orders po" +
-        "ON post.po_no = po.po_no" +
-        "INNER JOIN users u" +
-        "ON po.users_no = u.users_no;";
+        String sql = "SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, " +
+                "(s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name " +
+                "FROM place_orders_stock post " +
+                "INNER JOIN stock s ON post.st_no = s.st_no " +
+                "INNER JOIN place_orders po ON post.po_no = po.po_no " +
+                "INNER JOIN users u ON po.users_no = u.users_no;";
+
 
         try (PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {

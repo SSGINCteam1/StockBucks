@@ -2,6 +2,8 @@ package com.ssginc.placeonorders.model.dto;
 
 import lombok.Data;
 
+import java.util.Scanner;
+
 
 @Data
 public class PlaceonOrdersDTO {
@@ -13,3 +15,5 @@ public class PlaceonOrdersDTO {
     private String stUnit;
 
 }
+
+
