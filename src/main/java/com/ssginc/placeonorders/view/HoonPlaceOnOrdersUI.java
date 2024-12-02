@@ -70,7 +70,7 @@ public class HoonPlaceOnOrdersUI {
         List<HoonSelectStockListDTO> result = null;
         String title = null;
         switch (choice) {
-            case 1:
+            case 1 -> {
                 result = placeOnOrdersDAO.selectAllStockList();
 
                 if (result == null) {
@@ -81,8 +81,9 @@ public class HoonPlaceOnOrdersUI {
 
                 title = "[재고 전체 조회]";
                 this.printStockList(result, title);
-                break;
-            case 2:
+            }
+
+            case 2 -> {
                 int categoryNum = selectCategory();
                 result = placeOnOrdersDAO.selectStockListByCategory(categoryNum);
 
@@ -94,15 +95,27 @@ public class HoonPlaceOnOrdersUI {
 
                 title = "[재고 카테고리별 조회]";
                 this.printStockList(result, title);
-                break;
-            case 3:
-                System.out.println("키워드 검색 재고 조회 메뉴입니다.");
-                System.out.println("해당 기능은 아직 구현 중입니다.");
-                break;
-            default:
+            }
+
+            case 3 -> {
+                String searchKeyword = inputKeyword();
+                result = placeOnOrdersDAO.selectStockListByKeyword(searchKeyword);
+
+                if (result == null) {
+                    // CommonUI의 메서드로 빼는 것도 좋을 거 같다고 생각
+                    System.out.println("조회된 결과가 없습니다.");
+                    break;
+                }
+
+                title = "[재고 키워드 검색]";
+                this.printStockList(result, title);
+            }
+
+            default -> {
                 // 추후 CommonUI.displayWrongSelectMessage();로 변경예정
                 System.out.println("잘못된 입력입니다. 다시 입력해주세요");
                 this.selectStockList();
+            }
         }
     }
 
@@ -133,5 +146,15 @@ public class HoonPlaceOnOrdersUI {
         System.out.print(">> ");
 
         return sc.nextInt();
+    }
+
+    // 검색 키워드 입력 메서드
+    public String inputKeyword() {
+        sc.nextLine();  // 입력 버퍼 비워주기
+        System.out.println("===================================");
+        System.out.println("검색할 단어를 입력하세요.");
+        System.out.print(">> ");
+
+        return sc.nextLine();
     }
 }
