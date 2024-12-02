@@ -122,6 +122,7 @@ public class ManageProductDAO {
 
     }
 
+
     public void delete(int st_no) {
         String sql = "delete from stock where st_no = ?";
     }
