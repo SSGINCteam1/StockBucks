@@ -128,6 +128,7 @@ public class ManageProductDAO {
     }
 
 
+
     public void insert(ManageProductVO bag) {
         String sql = "insert into stock (st_name, st_price, st_quantity, st_owner, st_category, st_unit, st_state) valuse()";
 
