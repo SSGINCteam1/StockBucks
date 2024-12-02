@@ -1,5 +1,6 @@
 package com.ssginc.placeonorders.model.dao;
 
+import com.ssginc.placeonorders.model.dto.HoonSelectBasketListDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectStockListDTO;
 import com.ssginc.util.HikariCPDataSource;
 
@@ -128,6 +129,51 @@ public class HoonPlaceOnOrdersDAO {
         }
 
         return stockList;
+    }
+
+    // 장바구니에 담은 품목 조회
+    public List<HoonSelectBasketListDTO> selectBasketListByUsersNo(int usersNo) {
+        List<HoonSelectBasketListDTO> basketList = null;
+        String sql = """
+                SELECT pob.st_no, s.st_name, s.st_price, pob.pob_quantity, (s.st_price * pob.pob_quantity) AS pob_price, s.st_category, s.st_unit
+                FROM place_orders_basket pob
+                INNER JOIN stock s ON pob.st_no = s.st_no
+                INNER JOIN users u ON pob.users_no = u.users_no
+                WHERE u.users_no = ?
+                """;
+        
+        // DB와 connection 연결 및 SQL문 전송
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 usersNo를 SQL문의 파라미터로 setting
+            ps.setInt(1, usersNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (basketList == null) {
+                        basketList = new ArrayList<>();
+                    }
+
+                    // 값 전달을 위한 DTO 생성 및 SQL문을 통해 불러온 field의 값들로 DTO setting(빌더 패턴)
+                    HoonSelectBasketListDTO dto = HoonSelectBasketListDTO.builder()
+                            .stNo(rs.getInt("st_no"))
+                            .stName(rs.getString("st_name"))
+                            .stPrice(rs.getInt("st_price"))
+                            .placeOrdersQuantity(rs.getInt("pob_quantity"))
+                            .placeOrdersPrice(rs.getInt("pob_price"))
+                            .stCategory(rs.getInt("st_category"))
+                            .stUnit(rs.getString("st_unit"))
+                            .build();
+
+                    // DTO List에 DTO 추가
+                    basketList.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return basketList;
     }
 
 }

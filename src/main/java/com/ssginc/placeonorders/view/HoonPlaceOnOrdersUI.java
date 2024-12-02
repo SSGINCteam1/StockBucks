@@ -1,7 +1,9 @@
 package com.ssginc.placeonorders.view;
 
 import com.ssginc.common.view.CommonUI;
+import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.placeonorders.model.dao.HoonPlaceOnOrdersDAO;
+import com.ssginc.placeonorders.model.dto.HoonSelectBasketListDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectStockListDTO;
 
 import java.util.List;
@@ -9,15 +11,18 @@ import java.util.Scanner;
 
 public class HoonPlaceOnOrdersUI {
 
-    private final HoonPlaceOnOrdersDAO placeOnOrdersDAO;
     private final Scanner sc;
+    private final HoonPlaceOnOrdersDAO placeOnOrdersDAO;
+    private final UsersDTO user;
     String[] category = {"디저트", "MD", "일회용품", "원자재", "병음료", "원두"};
 
-    public HoonPlaceOnOrdersUI() {
+    public HoonPlaceOnOrdersUI(UsersDTO user) {
         this.sc = new Scanner(System.in);
         placeOnOrdersDAO = new HoonPlaceOnOrdersDAO();
+        this.user = user;
     }
 
+    // 발주 메뉴 선택 메서드
     public void placeOnOrderschoice() {
         boolean running = true;
 
@@ -25,12 +30,10 @@ public class HoonPlaceOnOrdersUI {
 
         switch (choice) {
             case 1:
-                this.selectStockList();
-                // 재고 조회 로직
+                this.selectStockList();     // 재고 조회 로직
                 break;
             case 2:
-
-                // 재고 신청 로직
+                this.registerPlaceOnOrdersMenu();   // 발주 신청 로직
                 break;
             case 3:
 
@@ -51,10 +54,11 @@ public class HoonPlaceOnOrdersUI {
 
     }
 
+    // 발주 메뉴 출력 메서드
     public int placeOnOrders(Scanner sc) {
         System.out.println("===================================\n");
         System.out.println("[발주] \n");
-        System.out.println("1. 재고 조회\t2. 재고 신청\t 3. 발주 내역 조회\t4. 발주 가능 품목 조회\t5. 종료\n");
+        System.out.println("1. 재고 조회\t2. 발주 신청\t3. 발주 내역 조회\t4. 발주 가능 품목 조회\t5. 종료\n");
         System.out.print(">> ");
         return sc.nextInt();
     }
@@ -70,6 +74,7 @@ public class HoonPlaceOnOrdersUI {
         List<HoonSelectStockListDTO> result = null;
         String title = null;
         switch (choice) {
+            // 전체 조회
             case 1 -> {
                 result = placeOnOrdersDAO.selectAllStockList();
 
@@ -83,6 +88,7 @@ public class HoonPlaceOnOrdersUI {
                 this.printStockList(result, title);
             }
 
+            // 카테고리 조회
             case 2 -> {
                 int categoryNum = selectCategory();
                 result = placeOnOrdersDAO.selectStockListByCategory(categoryNum);
@@ -97,6 +103,7 @@ public class HoonPlaceOnOrdersUI {
                 this.printStockList(result, title);
             }
 
+            // 키워드 검색
             case 3 -> {
                 String searchKeyword = inputKeyword();
                 result = placeOnOrdersDAO.selectStockListByKeyword(searchKeyword);
@@ -119,6 +126,25 @@ public class HoonPlaceOnOrdersUI {
         }
     }
 
+    // 발주 신청 메뉴
+    public void registerPlaceOnOrdersMenu() {
+        System.out.println("===================================");
+        System.out.println("[발주 신청]");
+        System.out.println();
+
+        if (this.user == null) {
+            System.out.println("회원 정보가 잘못되었습니다.");
+            return;
+        }
+        List<HoonSelectBasketListDTO> basketList = placeOnOrdersDAO.selectBasketListByUsersNo(this.user.getUsersNo());
+        this.printBasketList(basketList);
+
+        System.out.println("===================================");
+        System.out.println("1. 품목 선택\t2. 발주 신청");
+        System.out.print(">> ");
+//        int choice = sc.nextInt();
+    }
+
     // 재고 리스트 출력 메서드
     public void printStockList(List<HoonSelectStockListDTO> stockList, String title) {
         System.out.println("===================================");
@@ -134,6 +160,32 @@ public class HoonPlaceOnOrdersUI {
                     category[stock.getStCategory()],
                     stock.getStUnit());
         }
+    }
+
+    // 장바구니 리스트 출력 메서드
+    public void printBasketList(List<HoonSelectBasketListDTO> basketList) {
+        System.out.printf("%-10s%-20s%-10s%-10s%-10s%-20s%-10s\n",
+                "제품번호", "제품명", "단가", "발주수량", "발주가격", "제품 카테고리", "제품 단위");
+        System.out.println("---------------------------------------------");
+
+        int totalPrice = 0;
+        for (HoonSelectBasketListDTO basketStock : basketList) {
+            int subTotal = basketStock.getPlaceOrdersPrice();
+
+            System.out.printf("%-10s%-20s%-10d%-10d%-10d%-20s%-10s\n",
+                    basketStock.getStNo(),
+                    basketStock.getStName(),
+                    basketStock.getStPrice(),
+                    basketStock.getPlaceOrdersQuantity(),
+                    basketStock.getPlaceOrdersPrice(),
+                    category[basketStock.getStCategory()],
+                    basketStock.getStUnit());
+
+            totalPrice += subTotal;
+        }
+
+        System.out.println("---------------------------------------------");
+        System.out.println("Total | \t" + totalPrice);
     }
 
     // 카테고리 입력 메서드
