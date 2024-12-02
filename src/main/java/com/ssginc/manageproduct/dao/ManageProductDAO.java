@@ -116,7 +116,6 @@ public class ManageProductDAO {
         }
     }
 
-
     public void update(String st_name, int st_no) {
         String sql = "update stock set st_name = ? where st_no = ?";
 
