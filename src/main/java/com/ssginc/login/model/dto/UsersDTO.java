@@ -12,4 +12,5 @@ public class UsersDTO {
     private String usersPw; // 유저비밀번호
     private String usersRole; // 유저권한
     private String usersName; // 유저 이름
+    private String usersBirth; // 유저생년월일
 }
