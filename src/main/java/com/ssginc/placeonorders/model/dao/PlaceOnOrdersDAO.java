@@ -217,25 +217,238 @@ public class PlaceOnOrdersDAO {
         }
     }
 
-    public void UpdateOrderHistory(Connection con, PlaceOrdersStockVO vo) {
-        String sql  = "update place_orders_stock set post_quantity = ?" +
-                "where st_no = ?;";
+    public int UpdateOrderHistory(Connection con, PlaceOrdersStockVO vo) {
+        int res = 0;
+        String sql = """
+                    update place_orders_stock
+                    set post_quantity = ?
+                    where st_no = ? and po_no = ?
+                    """;
         try(PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, vo.getPostQuantity());
             ps.setInt(2, vo.getStNo());
-            ps.executeUpdate();
+            ps.setInt(3, vo.getPoNo());
+
+            res = ps.executeUpdate();
         } catch (SQLException e) {
             System.out.println("SQL문 오류");
         }
 
+        return res;
+    }
+    // ----------------------  기간별 주문 내역 조회 ----------------------
+    // 년도별 주문 내역 목록 조회
+    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByYear(Connection conn, int year) {
+        ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
+        String sql = """
+        SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, (s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name
+        FROM place_orders_stock post
+        INNER JOIN stock s
+        ON post.st_no = s.st_no
+        INNER JOIN place_orders po
+        ON post.po_no = po.po_no
+        INNER JOIN users u
+        ON po.users_no = u.users_no
+        where year(po_date) = ?
+        order by po_date;
+                 """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, year);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    PlaceonOrdersCheckDTO user = new PlaceonOrdersCheckDTO();
+                    user.setPoNo(rs.getInt("po_no"));
+                    user.setStNo(rs.getInt("st_no"));
+                    user.setStName(rs.getString("st_name"));
+                    user.setStPrice(rs.getInt("st_price"));
+                    user.setPostQuantity(rs.getInt("post_quantity"));
+                    user.setStCategory(rs.getInt("st_category"));
+                    user.setPoDate(rs.getString("po_date"));
+                    user.setUsersName(rs.getString("users_name"));
+                    list.add(user);
+                }
+            }
+
+        }
+    catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
 
 
+    // 월별 발주 내역 목록 조회
+
+    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByMonth(Connection conn, int month,int year) {
+        ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
+        String sql = """
+        SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, (s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name
+        FROM place_orders_stock post
+        INNER JOIN stock s
+        ON post.st_no = s.st_no
+        INNER JOIN place_orders po
+        ON post.po_no = po.po_no
+        INNER JOIN users u
+        ON po.users_no = u.users_no
+        where month(po_date) = ?
+        and year(po_date) = ?
+        order by po_date
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, month);
+            ps.setInt(2, year);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    PlaceonOrdersCheckDTO user = new PlaceonOrdersCheckDTO();
+                    user.setPoNo(rs.getInt("po_no"));
+                    user.setStNo(rs.getInt("st_no"));
+                    user.setStName(rs.getString("st_name"));
+                    user.setStPrice(rs.getInt("st_price"));
+                    user.setPostQuantity(rs.getInt("post_quantity"));
+                    user.setStCategory(rs.getInt("st_category"));
+                    user.setPoDate(rs.getString("po_date"));
+                    user.setUsersName(rs.getString("users_name"));
+                    list.add(user);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+
+    // 일자별 발주 내역 목록 조회
+
+    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByDay(Connection conn, int day,int month,int year) {
+        ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
+        String sql = """
+        SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, (s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name
+        FROM place_orders_stock post
+        INNER JOIN stock s
+        ON post.st_no = s.st_no
+        INNER JOIN place_orders po
+        ON post.po_no = po.po_no
+        INNER JOIN users u
+        ON po.users_no = u.users_no
+        where day(po_date) = ?
+        and month(po_date) = ?
+        and year(po_date) = ?
+        order by po_date       
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, day);
+            ps.setInt(2, month);
+            ps.setInt(3,year);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    PlaceonOrdersCheckDTO user = new PlaceonOrdersCheckDTO();
+                    user.setPoNo(rs.getInt("po_no"));
+                    user.setStNo(rs.getInt("st_no"));
+                    user.setStName(rs.getString("st_name"));
+                    user.setStPrice(rs.getInt("st_price"));
+                    user.setPostQuantity(rs.getInt("post_quantity"));
+                    user.setStCategory(rs.getInt("st_category"));
+                    user.setPoDate(rs.getString("po_date"));
+                    user.setUsersName(rs.getString("users_name"));
+                    list.add(user);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 
 
 
-
-
+//    public int PlaceOnOrdersHistoryRownumByDay(Connection conn, int year, int month, int day) {
+//        int res = 0;
+//
+//        String sql = """
+//                SELECT COUNT(po_no)
+//                FROM place_orders
+//                WHERE YEAR(po_date) = ?
+//                    AND MONTH(po_date) = ?
+//                    AND DAY(po_date) = ?
+//                """;
+//        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, year);
+//            ps.setInt(2, month);
+//            ps.setInt(3, day);
+//
+//            try(ResultSet rs = ps.executeQuery()) {
+//                if (rs.next()) {
+//                    res = rs.getInt(1);
+//                }
+//            }
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        return res;
+//    }
+//
+//    public int PlaceOnOrdersHistoryRownumByMonth(Connection conn, int year, int month) {
+//        int res = 0;
+//
+//        String sql = """
+//                SELECT COUNT(po_no)
+//                FROM place_orders
+//                WHERE YEAR(po_date) = ?
+//                    AND MONTH(po_date) = ?
+//                """;
+//        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, year);
+//            ps.setInt(2, month);
+//
+//            try(ResultSet rs = ps.executeQuery()) {
+//                if (rs.next()) {
+//                    res = rs.getInt(1);
+//                }
+//            }
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        return res;
+//    }
+//
+//
+//    public int PlaceOnOrdersHistoryRownumByYear(Connection conn, int year) {
+//        int res = 0;
+//
+//        String sql = """
+//                SELECT COUNT(po_no)
+//                FROM place_orders
+//                WHERE YEAR(po_date) = ?
+//                """;
+//        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, year);
+//
+//            try(ResultSet rs = ps.executeQuery()) {
+//                if (rs.next()) {
+//                    res = rs.getInt(1);
+//                }
+//            }
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        return res;
+//    }
 
 }
