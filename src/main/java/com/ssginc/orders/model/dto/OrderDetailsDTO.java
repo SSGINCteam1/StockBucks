@@ -13,7 +13,7 @@ public class OrderDetailsDTO {
     private int orderNo; // 주문 번호
     private Date orderDate; // 주문일자
     private String userName; // 주문자명
-    private List<WishProductsDTO> products; // 주문 상품 리스트
+    private List<ProductsDTO> products; // 주문 상품 리스트
     private int totalPrice; // 총 결제 금액
 
 
