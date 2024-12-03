@@ -2,18 +2,22 @@ package com.ssginc.orders.service;
 
 import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.orders.model.dao.TimOrdersDAO;
-import com.ssginc.orders.model.dto.OrderDetailsDTO;
-import com.ssginc.orders.model.dto.OrdersSelectDTO;
+import com.ssginc.orders.model.dto.*;
 import com.ssginc.util.HikariCPDataSource;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class TimOrdersServiceImpl implements TimOrdersService {
@@ -35,8 +39,8 @@ public class TimOrdersServiceImpl implements TimOrdersService {
     @Override
     public long getDiffMinOrderDateAndNow(String date) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDate orderDate =LocalDate.parse(date, dateTimeFormatter);
-        LocalDate now = LocalDate.now();
+        LocalDateTime orderDate = LocalDateTime.parse(date, dateTimeFormatter);
+        LocalDateTime now = LocalDateTime.now();
 
         Duration diff = Duration.between(orderDate, now);
 
@@ -46,13 +50,89 @@ public class TimOrdersServiceImpl implements TimOrdersService {
     @Override
     public int cancelOrderDetails(OrderDetailsDTO orderDetail) {
 
-        // 1. 주문 취소
+        int res = 0;
 
-        // 2. 재료 원복
+        int orderNo = orderDetail.getOrderNo();
 
-        // => 각 음료에 사용된 원재료들
+        boolean includeEtc = false;
 
-        return 0;
+        try(Connection conn = dataSource.getConnection()){
+            conn.setAutoCommit(false); // 오토 커밋 비활성화
+
+            // 1. 주문 취소
+            int res1 = 1;
+
+            res1 *= timOrdersDAO.deleteOrdersOptForCancelOrder(conn, orderNo);
+            res1 *= timOrdersDAO.deleteOrdersPrdForCancelOrder(conn, orderNo);
+            res1 *= timOrdersDAO.deleteOrdersForCancelOrder(conn, orderNo);
+
+            for (ProductsDTO prd : orderDetail.getProducts()){
+                if (prd.getIsBeverage() == 2){
+                    includeEtc = true;
+                    break;
+                }
+            }
+
+            if (includeEtc){
+                res1 *= timOrdersDAO.deleteOrdersStockForCancelOrder(conn, orderNo);
+            }
+
+            // 2. 재료 원복
+            Map<Integer, Integer> consumptionMap = new HashMap<>(); // key : st_no / value : 소모량
+
+            List<ConsumptionDTO> consumptions = null;
+
+            for (ProductsDTO prd : orderDetail.getProducts()) {
+
+                if (prd.getIsBeverage() == 1){
+                    consumptions = timOrdersDAO.selectProductConsumptionList(conn, prd.getPno()); // 음료 제조  소모량
+                    for (ConsumptionDTO c : consumptions) {
+                        consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * prd.getQuantity());
+                    }
+                    for (OptionsDTO opt : prd.getOptions()) {
+                        consumptions = timOrdersDAO.selectOptConsumptionList(conn,opt.getOptNo()); // 옵션 제조  소모량
+                        for (ConsumptionDTO c : consumptions) {
+                            consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * opt.getQuantity());
+                        }
+                    }
+                } else {
+                    consumptions = timOrdersDAO.selectOtherConsumptionList(conn, orderNo); // 이외 상품 소모량
+                    for (ConsumptionDTO c : consumptions) {
+                        consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * prd.getQuantity());
+                    }
+                }
+            }
+
+            int res2 = 1;
+
+            for (int key : consumptionMap.keySet()) {
+                int stockNo = key;
+                int stockConsumption = consumptionMap.get(key);
+
+                res2 *= timOrdersDAO.updateStockForRestore(conn, stockNo, stockConsumption);
+            }
+
+            res = res1 * res2;
+
+            if (res > 0 ){
+                conn.commit();
+            } else {
+                conn.rollback();
+
+                if (res1 <= 0){
+                    log.error("주문 취소에 실패했습니다.");
+                }
+
+                if (res2 <= 0) {
+                    log.error("재고 원복에 실패했습니다.");
+                }
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
     }
 
 
@@ -175,7 +255,6 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         }
         return result;
     }
-
 
 
     // ---------------------- 4.3. 유저별 주문 내역 조회 ----------------------

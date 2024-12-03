@@ -1,10 +1,7 @@
 package com.ssginc.orders.model.dao;
 
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.orders.model.dto.OptionsDTO;
-import com.ssginc.orders.model.dto.OrderDetailsDTO;
-import com.ssginc.orders.model.dto.OrdersSelectDTO;
-import com.ssginc.orders.model.dto.ProductsDTO;
+import com.ssginc.orders.model.dto.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
@@ -15,10 +12,206 @@ import java.util.List;
 @Slf4j
 public class TimOrdersDAO {
 
+
+
+    // =================================== 3. 주문 취소 ===================================
+    public int deleteOrdersForCancelOrder(Connection conn, int orderNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM orders
+                WHERE orders_no = ?;
+                """;
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderNo);
+            res = ps.executeUpdate();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+
+    public int deleteOrdersOptForCancelOrder(Connection conn, int orderNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM orders_opt
+                    WHERE ord_prd_no IN (
+                        SELECT ord_prd_no
+                        FROM orders_prd
+                        WHERE orders_no = ?
+                    )
+                    """;
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderNo);
+            res = ps.executeUpdate();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    public int deleteOrdersPrdForCancelOrder(Connection conn, int orderNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM orders_prd
+                WHERE orders_no = ?;
+                """;
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderNo);
+            res = ps.executeUpdate();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+
+    public int deleteOrdersStockForCancelOrder(Connection conn, int orderNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM orders_stock
+                WHERE orders_no = ?
+                """;
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderNo);
+            res = ps.executeUpdate();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    public int updateStockForRestore(Connection conn, int stockNo, int stockConsumption) {
+
+        int res = 0;
+
+        String sql = """
+                UPDATE stock
+                SET st_quantity = st_quantity + ?
+                WHERE st_no = ?
+                    """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, stockConsumption);
+            ps.setInt(2, stockNo);
+
+            res = ps.executeUpdate();
+
+        } catch ( Exception e ){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    public List<ConsumptionDTO> selectProductConsumptionList(Connection conn, int productNo) {
+
+        List<ConsumptionDTO> res = new ArrayList<>();
+
+        String sql = """
+                SELECT st_no, pst_consume
+                FROM prd_stock
+                JOIN stock s using (st_no)
+                WHERE p_no = ?
+                ORDER BY st_no
+                    """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, productNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    res.add(ConsumptionDTO.builder()
+                                    .stockNo(rs.getInt("st_no"))
+                                    .consumption(rs.getInt("pst_consume"))
+                                .build()
+                    );
+                }
+            }
+
+        } catch ( Exception e ) {
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+
+    public List<ConsumptionDTO> selectOptConsumptionList(Connection conn, int optNo) {
+
+        List<ConsumptionDTO> res = new ArrayList<>();
+
+        String sql = """
+                SELECT st_no, opt_consume
+                FROM orders_opt o
+                JOIN opt USING (opt_no)
+                JOIN opt_category USING (category_no)
+                JOIN stock USING (st_no)
+                WHERE o.opt_no = ?
+                ORDER BY st_no;
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, optNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    res.add(ConsumptionDTO.builder()
+                            .stockNo(rs.getInt("st_no"))
+                            .consumption(rs.getInt("opt_consume"))
+                            .build()
+                    );
+                }
+            }
+
+        } catch ( Exception e ) {
+            e.printStackTrace();
+        }
+
+        return res;
+
+    }
+
+
+    public List<ConsumptionDTO> selectOtherConsumptionList(Connection conn, int orderNo) {
+        List<ConsumptionDTO> res = new ArrayList<>();
+
+        String sql = """
+                SELECT st_no, ost_quantity
+                FROM ORDERS_STOCK OS
+                JOIN STOCK S using (st_no)
+                WHERE ORDERS_NO = ?
+                ORDER BY st_no;
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, orderNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    res.add(ConsumptionDTO.builder()
+                            .stockNo(rs.getInt("st_no"))
+                            .consumption(rs.getInt("pst_consume"))
+                            .build()
+                    );
+                }
+            }
+
+        } catch ( Exception e ) {
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+
+
     // =================================== 4. 주문 내역 조회 ===================================
 
     // ---------------------- 4.1. 전체 주문 내역 조회 ----------------------
-
     /**
      * 전체 주문 내역 조회
      * @param conn
@@ -50,7 +243,6 @@ public class TimOrdersDAO {
 
         return orders;
     }
-
     public int selectOrdersListRownumAll(Connection conn) {
 
         int res = 0;
@@ -73,6 +265,7 @@ public class TimOrdersDAO {
 
     // ---------------------- 4.2. 기간별 주문 내역 조회 ----------------------
     // 년도별 주문 내역 목록 조회
+
     public ArrayList<OrdersSelectDTO> selectOrderListByYear(Connection conn, int year, int pageSize, int offset) {
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
@@ -99,8 +292,8 @@ public class TimOrdersDAO {
         }
         return orders;
     }
-    
     // 월별 주문 내역 목록 조회
+
     public ArrayList<OrdersSelectDTO> selectOrderListByMonth(Connection conn, int year, int month, int pageSize, int offset) {
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
@@ -132,8 +325,9 @@ public class TimOrdersDAO {
 
         return orders;
     }
-    
+
     // 일자별 주문 내역 목록 조회
+
     public ArrayList<OrdersSelectDTO> selectOrderListByDay(Connection conn, int year, int month, int day, int pageSize, int offset) {
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
@@ -473,43 +667,89 @@ public class TimOrdersDAO {
 
     }
 
-
     // ---------------------- 4.5. 주문 내역 조회 유틸 메서드 ----------------------
-    
     // 주문 세부 객체 select
+
     public OrderDetailsDTO selectOrdersDetails(Connection conn, int orderNo) {
         List<ProductsDTO> products = new ArrayList<>(); // 제품 리스트
 
         //  자바17부터는 """ 로 텍스트 블록 정의 가능
         String sql = """
-        SELECT opd.ord_prd_no, opd.p_no, opd.opd_quantity, p.p_name, p.p_price, oopt.opt_no, oopt.oropt_name, oopt.oropt_price, oopt.oropt_quantity
+       WITH combined_data AS
+        (SELECT
+               opd.ord_prd_no AS "ord_prd_no",
+                opd.p_no AS "p_no",
+                p.p_name AS "p_name",
+                p.p_price AS "p_price",
+                opd.opd_quantity AS "opd_quantity",
+                oopt.opt_no AS "opt_no",
+                oopt.oropt_name AS "opt_name",
+                oopt.oropt_price AS "opt_price",
+                oopt.oropt_quantity AS "opt_quantity",
+                1 AS "delimiter"
+         FROM ORDERS o
+         LEFT JOIN ORDERS_PRD opd ON o.orders_no = opd.orders_no
+         LEFT JOIN ORDERS_OPT oopt ON opd.ord_prd_no = oopt.ord_prd_no
+         LEFT JOIN products p ON p.p_no = opd.p_no
+         WHERE o.ORDERS_NO = ?
+        
+        UNION
+        
+        SELECT
+               0 AS "ord_prd_no",
+               ost.st_no AS "p_no",
+               s.st_name AS "p_name",
+               s.st_price AS "p_price",
+               ost.ost_quantity AS "opd_quantity",
+               NULL AS "opt_no",
+               NULL AS "opt_name",
+               NULL AS "opt_price",
+               NULL AS "opt_quantity",
+               2 AS "delimiter"
         FROM ORDERS o
-        JOIN ORDERS_PRD opd USING (orders_no)
-        LEFT JOIN ORDERS_OPT oopt USING (ord_prd_no)
-        LEFT JOIN products p ON p.p_no = opd.p_no
-        WHERE o.ORDERS_NO = ?
-        ORDER BY opd.p_no, oopt.opt_no;
+        LEFT JOIN ORDERS_STOCK ost ON o.orders_no = ost.orders_no
+        JOIN stock s ON ost.st_no = s.st_no
+        WHERE o.orders_no = ?)
+        
+        SELECT
+        	ROW_NUMBER() OVER(ORDER BY ord_prd_no, p_no) AS "rownum",
+             ord_prd_no,
+        	 p_no,
+        	 p_name,
+        	 p_price,
+        	 opd_quantity,
+        	 opt_no,
+        	 opt_name,
+        	 opt_price,
+        	 opt_quantity,
+        	 delimiter
+        FROM combined_data
+        ORDER BY rownum
     """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderNo); // 동적 파라미터 설정
+            ps.setInt(2, orderNo); // 동적 파라미터 설정
 
             try (ResultSet rs = ps.executeQuery()) {
                 ProductsDTO currentProduct = null;
 
                 int prevOrdPrdNo = -1; // 이전 제품 번호를 저장
+                int prevRownum = -1;
 
                 while (rs.next()) {
+                    int currRownum = rs.getInt("rownum");
                     int currOrdPrdNo = rs.getInt("ord_prd_no");
 
                     // 새로운 제품을 만나면 이전 제품 저장 및 초기화
-                    if (currOrdPrdNo != prevOrdPrdNo) {
+                    if (currOrdPrdNo != prevOrdPrdNo || (currOrdPrdNo == 0 && currRownum != prevRownum)) {
                         if (currentProduct != null) {
                             products.add(currentProduct); // 이전 제품 저장
                         }
 
                         // 새로운 제품 생성
                         currentProduct = ProductsDTO.builder()
+                                .isBeverage(rs.getInt("delimiter"))
                                 .pno(rs.getInt("p_no"))
                                 .pname(rs.getString("p_name"))
                                 .quantity(rs.getInt("opd_quantity"))
@@ -518,6 +758,7 @@ public class TimOrdersDAO {
                                 .build();
 
                         prevOrdPrdNo = currOrdPrdNo;
+                        prevRownum = currRownum;
                     }
 
                     // 옵션 추가 (옵션이 NULL인 경우 건너뜀)
@@ -525,9 +766,9 @@ public class TimOrdersDAO {
                     if (!rs.wasNull()) { // optNo가 NULL이 아닌 경우에만 추가
                         OptionsDTO option = OptionsDTO.builder()
                                 .optNo(optNo)
-                                .optName(rs.getString("oropt_name"))
-                                .price(rs.getInt("oropt_price"))
-                                .quantity(rs.getInt("oropt_quantity"))
+                                .optName(rs.getString("opt_name"))
+                                .price(rs.getInt("opt_price"))
+                                .quantity(rs.getInt("opt_quantity"))
                                 .build();
 
                         currentProduct.getOptions().add(option); // 현재 제품의 옵션 리스트에 추가
@@ -546,11 +787,13 @@ public class TimOrdersDAO {
 
         // 최종 결과에 반영
         return OrderDetailsDTO.builder()
+                .orderNo(orderNo)
                 .products(products) // 제품 리스트 설정
                 .build();
     }
 
     // 쿼리문 결과를 OrdersSelectDTO 객체로 매핑해주는 메서드
+
     private OrdersSelectDTO mapToOrdersSelectDTO(ResultSet rs) throws SQLException {
         return OrdersSelectDTO.builder()
                 .orderNo(rs.getInt("orders_no"))
@@ -560,9 +803,7 @@ public class TimOrdersDAO {
                 .build();
     }
 
-    
-    
+
+
     // =================================== 5. 품목 판매 중지 ===================================
-    
-    
 }

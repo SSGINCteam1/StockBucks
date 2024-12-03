@@ -16,6 +16,4 @@ public class OrderDetailsDTO {
     private String userName; // 주문자명
     private List<ProductsDTO> products; // 주문 상품 리스트
     private int totalPrice; // 총 결제 금액
-
-
 }

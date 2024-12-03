@@ -40,7 +40,7 @@ public class OrdersUI {
 
             switch (choice) {
                 case 4 -> this.viewOrdersHistory(); // 주문 내역 조회
-                case 5 -> this.pauseSales(); // 품목 판매 일시 중지
+//                case 5 -> this.displayPauseSales(); // 품목 판매 일시 중지
                 case 6 -> { // 상위 메뉴
                     System.out.println("상위 메뉴로 이동합니다.");
                     return;
@@ -59,23 +59,33 @@ public class OrdersUI {
     // =================================== 3. 주문 취소 ===================================
 
     public void displayCancelOrders(OrderDetailsDTO orderDetail){
-
+        System.out.println("===================================\n");
+        System.out.println("[주문 취소]\n");
+        
         long diffMin = timOrdersService.getDiffMinOrderDateAndNow(orderDetail.getOrderDate());
 
         if (diffMin >= 5) {
             System.out.println("주문 시간 5분 경과하여 취소 불가합니다.");
         } else {
-            timOrdersService.cancelOrderDetails(orderDetail);
+            if (timOrdersService.cancelOrderDetails(orderDetail) >= 1 ){
+                System.out.println("주문 취소에 성공했습니다.");
+            } else {
+                System.out.println("주문 취소에 실패했습니다.");
+            }
         }
 
-        System.out.println("1. 상위 메뉴\t2.종료\n");
+        System.out.println("\n1. 상위 메뉴\t2.종료\n");
         System.out.print(">> ");
         int choice = sc.nextInt();
+
+        if (choice == 1) {
+            System.out.println("상위 메뉴로 이동합니다.");
+        } else {
+            CommonUI.displayExitMessage();
+            System.exit(0);
+        }
+
     }
-
-    // 1.주문 내역 선택
-
-    // 2.주문 시간 5분 미경과?
 
 
 
@@ -394,7 +404,7 @@ public class OrdersUI {
 
             System.out.println();
 
-            displayPageBar(page, pageSize);
+            displayPageBar(page, totalPages);
 
             int choice = selectPageMenu();
 
@@ -447,48 +457,70 @@ public class OrdersUI {
      * @param order
      */
     public void displayOrdersDetail(OrdersSelectDTO order){
-        StringBuffer sb = new StringBuffer();
+        while (true){
+            StringBuffer sb = new StringBuffer();
+            sb.append("\n").append("===================================").append("\n");
+            sb.append("[주문 세부 내역]\n");
+            OrderDetailsDTO orderDetail = timOrdersService.selectOrdersDetail(order.getOrderNo());
 
-        OrderDetailsDTO orderDetail = timOrdersService.selectOrdersDetail(order.getOrderNo());
+            if (!orderDetail.getProducts().isEmpty()) {
+                orderDetail.setOrderDate(order.getOrderDate());
+                sb.append("\n").append("[").append(orderDetail.getOrderDate()).append("]").append(" 주문 내역을 불러왔습니다.").append("\n");
+                sb.append("----------------------------------------").append("\n");
+                sb.append(orderDetail.getOrderDate()).append("\n");
+                sb.append("----------------------------------------").append("\n");
+                sb.append("주문번호 : ").append(order.getOrderNo()).append("\n");
+                sb.append("----------------------------------------").append("\n");
+                sb.append("주문자 : ").append(order.getUserName()).append("\n");
+                sb.append("----------------------------------------").append("\n");
+                for (ProductsDTO products : orderDetail.getProducts()){
+                    sb.append(products.getPname()).append("\t").append(products.getPrice()).append("\t").append(products.getQuantity()).append("\n");
+                    for (OptionsDTO options : products.getOptions()){
+                        sb.append(options.getOptName()).append("\t").append(options.getPrice()).append("\t").append(options.getQuantity()).append("\n");
+                    }
+                }
+                sb.append("----------------------------------------").append("\n");
+                sb.append("합계").append("\t\t\t").append(order.getTotalPrice()).append("\n");
+                sb.append("----------------------------------------").append("\n");
 
-        sb.append("\n").append("===================================").append("\n");
-        sb.append("\n").append("[").append(order.getOrderDate()).append("]").append(" 주문 내역을 불러왔습니다.").append("\n");
-        sb.append("----------------------------------------").append("\n");
-        sb.append(order.getOrderDate()).append("\n");
-        sb.append("----------------------------------------").append("\n");
-        sb.append("주문번호 : ").append(order.getOrderNo()).append("\n");
-        sb.append("----------------------------------------").append("\n");
-        sb.append("주문자 : ").append(order.getUserName()).append("\n");
-        sb.append("----------------------------------------").append("\n");
-        for (ProductsDTO products : orderDetail.getProducts()){
-            sb.append(products.getPname()).append("\t").append(products.getPrice()).append("\t").append(products.getQuantity()).append("\n");
-            for (OptionsDTO options : products.getOptions()){
-                sb.append(options.getOptName()).append("\t").append(options.getPrice()).append("\t").append(options.getQuantity()).append("\n");
+                System.out.println(sb);
+
+                System.out.println("1. 주문 취소\t2.상위 메뉴\t3.종료");
+                sc.nextLine();
+                System.out.print(">> ");
+                int select = sc.nextInt();
+
+                if (select == 1) {
+                    this.displayCancelOrders(orderDetail);
+                }
+                else if (select == 2){
+                    return;
+                } else if (select == 3){
+                    CommonUI.displayExitMessage();
+                    System.exit(0);
+                } else {
+                    CommonUI.displayWrongSelectMessage();
+                }
+
+            } else {
+                System.out.println("주문 내역이 없습니다.\n");
+
+                System.out.println("1.상위 메뉴\t2.종료");
+                sc.nextLine();
+                System.out.print("\n>> ");
+                int select = sc.nextInt();
+
+                if (select == 1){
+                    return;
+                } else if (select == 2){
+                    CommonUI.displayExitMessage();
+                    System.exit(0);
+                } else {
+                    CommonUI.displayWrongSelectMessage();
+                }
             }
+
         }
-        sb.append("----------------------------------------").append("\n");
-        sb.append("합계").append("\t\t\t").append(order.getTotalPrice()).append("\n");
-        sb.append("----------------------------------------").append("\n");
-
-        System.out.println(sb);
-
-        System.out.println("1. 주문 취소\t2.상위 메뉴\t3.종료");
-        sc.nextLine();
-        System.out.print(">> ");
-        int select = sc.nextInt();
-
-        if (select == 1) {
-            this.displayCancelOrders(orderDetail);
-        }
-        else if (select == 2){
-            return;
-        } else if (select == 3){
-            CommonUI.displayExitMessage();
-            System.exit(0);
-        } else {
-            CommonUI.displayWrongSelectMessage();
-        }
-
     }
 
     /**
@@ -537,11 +569,4 @@ public class OrdersUI {
         System.out.print(">> ");
         return sc.nextInt();
     }
-
-
-    // =================================== 5. 품목 판매 중지 ===================================
-    private void displayPauseSales() {
-
-    }
-
 }

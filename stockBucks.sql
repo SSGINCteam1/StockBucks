@@ -88,9 +88,9 @@ CREATE TABLE IF NOT EXISTS prd_stock (
     st_no INT NOT NULL, -- 잡화 고유번호
     pst_consume INT NOT NULL, -- 제조 시 해당 원자재 소모량
     
-    PRIMARY KEY (p_no, st_no),
 	FOREIGN KEY (p_no) REFERENCES products(p_no) ON UPDATE CASCADE,
-    FOREIGN KEY (st_no) REFERENCES stock(st_no) ON UPDATE CASCADE
+    FOREIGN KEY (st_no) REFERENCES stock(st_no) ON UPDATE CASCADE,
+    PRIMARY KEY (p_no, st_no)
 );
 
 # 옵션 카테고리
@@ -120,7 +120,9 @@ CREATE TABLE IF NOT EXISTS prd_optcg (
     p_no INT NOT NULL, -- 제조상품
     optcg_name VARCHAR(100) NOT NULL, -- 옵션카테고리명
     
-	PRIMARY KEY(category_no, p_no)
+    FOREIGN KEY (category_no) REFERENCES opt(opt_no) ON UPDATE CASCADE, 
+    FOREIGN KEY (p_no) REFERENCES products(p_no) ON UPDATE CASCADE,
+	PRIMARY KEY (category_no, p_no)
 );
 
 # 주문 테이블
@@ -131,7 +133,7 @@ CREATE TABLE IF NOT EXISTS orders (
     orders_total DECIMAL NOT NULL, -- 주문총액
     users_no INT NOT NULL, -- 주문자 번호
     
-    FOREIGN KEY (users_no) REFERENCES users(users_no)
+    FOREIGN KEY (users_no) REFERENCES users(users_no) ON UPDATE CASCADE
 );
 
 # 주문_제조상품 중개 테이블
@@ -141,8 +143,7 @@ CREATE TABLE IF NOT EXISTS orders_prd (
     p_no INT NOT NULL, -- 제조상품ID
     opd_quantity INT NOT NULL DEFAULT 1, -- 주문수량
     
-    FOREIGN KEY (orders_no) REFERENCES orders(orders_no),
-    FOREIGN KEY (p_no) REFERENCES products(p_no)
+    FOREIGN KEY (orders_no) REFERENCES orders(orders_no) ON UPDATE CASCADE
 );
 
 # 주문_옵션 중개테이블
@@ -151,7 +152,10 @@ CREATE TABLE IF NOT EXISTS orders_opt (
     opt_no INT NOT NULL, -- 옵션번호
     oropt_name VARCHAR(100) NOT NULL, -- 옵션명
     oropt_price INT NOT NULL DEFAULT 0, -- 옵션가격
-    oropt_quantity INT,
+    oropt_quantity INT default 1,
+    
+    FOREIGN KEY (ord_prd_no) REFERENCES orders_prd(ord_prd_no) ON UPDATE CASCADE,
+    FOREIGN KEY (opt_no) REFERENCES opt(opt_no) ON UPDATE CASCADE,
     
     PRIMARY KEY(ord_prd_no, opt_no)
 );
@@ -162,6 +166,7 @@ CREATE TABLE IF NOT EXISTS orders_stock (
     st_no INT NOT NULL, -- 잡화 고유번호
     ost_quantity INT NOT NULL DEFAULT 1, -- 주문수량
     
+    FOREIGN KEY (orders_no) REFERENCES orders(orders_no) ON UPDATE CASCADE,
     PRIMARY KEY (orders_no, st_no)
 );
 
@@ -263,10 +268,8 @@ INSERT INTO orders_opt (ord_prd_no, opt_no, oropt_name, oropt_price, oropt_quant
 (3, 13, '휘핑 많이', 500, 1);
 
 -- 주문_재고물품 중개 테이블
-INSERT INTO orders_stock (orders_no, st_no, ost_quantity) VALUES
-(1, 1, 1),
-(2, 2, 3),
-(3, 3, 8);
+-- INSERT INTO orders_stock (orders_no, st_no, ost_quantity) VALUES
+-- (1, 5, 1);
 
 -- 발주 테이블
 INSERT INTO place_orders (po_total, users_no) VALUES
@@ -297,28 +300,8 @@ INSERT INTO place_orders_basket (users_no, st_no, pob_quantity) VALUES
 ########################
 ######## SELECT ########
 ########################
+        
+        
 
-select *
-from orders
-JOIN ORDERS_PRD USING (orders_no)
-where orders_no = 1;
-
-SELECT opd.ord_prd_no, opd.p_no, opd.opd_quantity, p.p_price, oopt.opt_no, oopt.oropt_price, oopt.oropt_quantity
-FROM ORDERS o
-JOIN ORDERS_PRD opd USING (orders_no)
-LEFT JOIN ORDERS_OPT oopt USING (ord_prd_no)
-LEFT JOIN products p ON p.p_no = opd.p_no
-WHERE o.ORDERS_NO = 1
-ORDER BY opd.p_no, oopt.opt_no;
-
-SELECT USERS_NO, USERS_NAME, USERS_BIRTH
-                    FROM USERS
-                    WHERE USERS_NAME = '김동현'
-                    ORDER BY USERS_BIRTH
-                    LIMIT 9 OFFSET 0;
-
-SELECT * FROM ORDERS;
-
-SELECT COUNT(ORDERS_NO)
-                FROM ORDERS
-                WHERE ORDERS_DATE >= '2024-11-01' AND ORDERS_DATE <= '2024-12-01';
+				
+                    
