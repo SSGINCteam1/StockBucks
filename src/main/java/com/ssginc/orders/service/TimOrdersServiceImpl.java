@@ -429,6 +429,9 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         return orderdetail;
     }
 
+
+
+
     private LocalDate[] conversionStrToLocalDate(String startDate, String endDate) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd"); // String을 Date 타입으로 변환하기 위해 Date 형식 지정
 
@@ -439,5 +442,22 @@ public class TimOrdersServiceImpl implements TimOrdersService {
     }
 
 
+
     // =================================== 5. 품목 판매 중지 ===================================
+
+    @Override
+    public int updateProductsIsActive(int pno) {
+
+        int res = 0;
+
+        try(Connection conn = dataSource.getConnection()){
+            res = timOrdersDAO.updateProductsIsActive(conn, pno);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+
 }
