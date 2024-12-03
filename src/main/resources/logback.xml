@@ -7,10 +7,10 @@
     </encoder>
 </appender>
 
-<!-- 루트 로거 설정 -->
-<root level="DEBUG">
-    <appender-ref ref="CONSOLE"/>
-</root>
+    <!-- 루트 로거 설정 -->
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+    </root>
 
 <logger name="com.zaxxer.hikari" level="INFO"/>
 </configuration>
