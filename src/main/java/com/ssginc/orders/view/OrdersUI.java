@@ -58,7 +58,7 @@ public class OrdersUI {
 
     // =================================== 3. 주문 취소 ===================================
 
-    public void displayCancelOrders(OrderDetailsDTO orderDetail){
+    private void displayCancelOrders(OrderDetailsDTO orderDetail){
         System.out.println("===================================\n");
         System.out.println("[주문 취소]\n");
         
@@ -95,7 +95,7 @@ public class OrdersUI {
     /**
      * 주문 내역 조회 초기 화면
      */
-    public void viewOrdersHistory(){
+    private void viewOrdersHistory(){
         while (true){
             System.out.println("===================================\n");
             System.out.println("[주문 내역 조회]\n");
@@ -456,7 +456,7 @@ public class OrdersUI {
      * 주문 세부 내역 조회
      * @param order
      */
-    public void displayOrdersDetail(OrdersSelectDTO order){
+    private void displayOrdersDetail(OrdersSelectDTO order){
         while (true){
             StringBuffer sb = new StringBuffer();
             sb.append("\n").append("===================================").append("\n");
@@ -564,9 +564,41 @@ public class OrdersUI {
      * 주문 내역 목록 조회 선택 메뉴 출력
      * @return
      */
-    public int selectPageMenu(){
+    private int selectPageMenu(){
         System.out.println("\n10. 다음 페이지\t11. 이전 페이지\t12. 페이지 입력\t13. 상위 메뉴\t14. 종료\n");
         System.out.print(">> ");
         return sc.nextInt();
+    }
+
+
+    // =================================== 5. 품목 판매 일시 중지 ===================================
+    private void displayPauseSale(){
+        while (true){
+            System.out.println("==================================\n");
+            System.out.println("[품목 판매 일시 중지]\n");
+            System.out.println("1. 음료\t2. 푸드\t3. 상품\t4. 상위 메뉴\t5. 종료\n");
+            System.out.print(">> ");
+            int choice = sc.nextInt();
+
+            switch (choice){
+                case 1 -> {
+
+                }
+                case 2 -> {
+
+                }
+                case 3 -> {
+
+                }
+                case 4 -> {
+
+                }
+                case 5 -> {
+
+                }
+                default -> CommonUI.displayWrongSelectMessage();
+            }
+        }
+
     }
 }
