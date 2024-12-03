@@ -176,4 +176,43 @@ public class HoonPlaceOnOrdersDAO {
         return basketList;
     }
 
+    // 유저 번호와 품목 번호로 장바구니에 담은 품목 조회
+    public HoonSelectBasketListDTO selectBasketStockByUsersNoAndStockNo(int usersNo, int stockNo) {
+        HoonSelectBasketListDTO dto = null;
+        String sql = """
+                SELECT pob.st_no, s.st_name, s.st_price, pob.pob_quantity, (s.st_price * pob.pob_quantity) AS pob_price, s.st_category, s.st_unit
+                FROM place_orders_basket pob
+                INNER JOIN stock s ON pob.st_no = s.st_no
+                INNER JOIN users u ON pob.users_no = u.users_no
+                WHERE u.users_no = ? AND pob.st_no = ?
+                """;
+
+        // DB와 connection 연결 및 SQL문 전송
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 usersNo와 stockNo를 SQL문의 파라미터로 setting
+            ps.setInt(1, usersNo);
+            ps.setInt(2, stockNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // 값 전달을 위한 DTO 생성 및 SQL문을 통해 불러온 field의 값들로 DTO setting(빌더 패턴)
+                    dto = HoonSelectBasketListDTO.builder()
+                            .stNo(rs.getInt("st_no"))
+                            .stName(rs.getString("st_name"))
+                            .stPrice(rs.getInt("st_price"))
+                            .placeOrdersQuantity(rs.getInt("pob_quantity"))
+                            .placeOrdersPrice(rs.getInt("pob_price"))
+                            .stCategory(rs.getInt("st_category"))
+                            .stUnit(rs.getString("st_unit"))
+                            .build();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return dto;
+    }
+
 }

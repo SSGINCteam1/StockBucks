@@ -6,6 +6,7 @@ import com.ssginc.placeonorders.model.dao.HoonPlaceOnOrdersDAO;
 import com.ssginc.placeonorders.model.dto.HoonSelectBasketListDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectStockListDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -136,13 +137,36 @@ public class HoonPlaceOnOrdersUI {
             System.out.println("회원 정보가 잘못되었습니다.");
             return;
         }
+        // 장바구니에 담은 품목 리스트 출력
         List<HoonSelectBasketListDTO> basketList = placeOnOrdersDAO.selectBasketListByUsersNo(this.user.getUsersNo());
-        this.printBasketList(basketList);
+        // 선택된 품목이 품목 리스트에 존재하는지 확인하기 위해 품목 리스트 번호
+        List<Integer> basketStockNoList = this.printBasketList(basketList);
 
         System.out.println("===================================");
         System.out.println("1. 품목 선택\t2. 발주 신청");
         System.out.print(">> ");
-//        int choice = sc.nextInt();
+        int choice = sc.nextInt();
+
+        switch (choice) {
+            // 품목 선택
+            case 1 -> {
+                // 장바구니 품목 리스트에서 품목 선택
+                int selectedBasketStockNo = selectBasketStock(basketStockNoList);
+                // 선택된 장바구니 품목으로 DB에서 원하는 정보를 가져와 출력
+                HoonSelectBasketListDTO selectedBasketStock = placeOnOrdersDAO.selectBasketStockByUsersNoAndStockNo(this.user.getUsersNo(), selectedBasketStockNo);
+                if (selectedBasketStock == null) {
+                    System.out.println("잘못된 입력입니다.");
+                    return;
+                    // Todo 예외 처리
+                }
+                printSelectedBasketStock(selectedBasketStock);
+            }
+
+            // 발주 신청
+            case 2 -> {
+
+            }
+        }
     }
 
     // 재고 리스트 출력 메서드
@@ -163,7 +187,9 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 장바구니 리스트 출력 메서드
-    public void printBasketList(List<HoonSelectBasketListDTO> basketList) {
+    public List<Integer> printBasketList(List<HoonSelectBasketListDTO> basketList) {
+        List<Integer> basketStockNo = new ArrayList<>();
+
         System.out.printf("%-10s%-20s%-10s%-10s%-10s%-20s%-10s\n",
                 "제품번호", "제품명", "단가", "발주수량", "발주가격", "제품 카테고리", "제품 단위");
         System.out.println("---------------------------------------------");
@@ -171,9 +197,12 @@ public class HoonPlaceOnOrdersUI {
         int totalPrice = 0;
         for (HoonSelectBasketListDTO basketStock : basketList) {
             int subTotal = basketStock.getPlaceOrdersPrice();
+            int stockNo = basketStock.getStNo();
+
+            basketStockNo.add(stockNo);
 
             System.out.printf("%-10s%-20s%-10d%-10d%-10d%-20s%-10s\n",
-                    basketStock.getStNo(),
+                    stockNo,
                     basketStock.getStName(),
                     basketStock.getStPrice(),
                     basketStock.getPlaceOrdersQuantity(),
@@ -186,6 +215,25 @@ public class HoonPlaceOnOrdersUI {
 
         System.out.println("---------------------------------------------");
         System.out.println("Total | \t" + totalPrice);
+
+        return basketStockNo;
+    }
+
+    // 선택한 품목에 대한 정보 출력 메서드
+    public void printSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
+        System.out.println("===================================");
+        System.out.printf("%-10s%-20s%-10s%-10s%-10s%-20s%-10s\n",
+                "제품번호", "제품명", "단가", "발주수량", "발주가격", "제품 카테고리", "제품 단위");
+        System.out.println("---------------------------------------------");
+
+        System.out.printf("%-10s%-20s%-10d%-10d%-10d%-20s%-10s\n",
+                selectedBasketStock.getStNo(),
+                selectedBasketStock.getStName(),
+                selectedBasketStock.getStPrice(),
+                selectedBasketStock.getPlaceOrdersQuantity(),
+                selectedBasketStock.getPlaceOrdersPrice(),
+                category[selectedBasketStock.getStCategory()],
+                selectedBasketStock.getStUnit());
     }
 
     // 카테고리 입력 메서드
@@ -209,4 +257,23 @@ public class HoonPlaceOnOrdersUI {
 
         return sc.nextLine();
     }
+
+    // 품목 선택 메서드
+    public int selectBasketStock(List<Integer> basketStockNoList) {
+        System.out.println("===================================");
+        System.out.println("[품목 선택]");
+        System.out.println("선택할 품목의 제품번호를 입력하세요.");
+        System.out.print(">> ");
+
+        while (true) {
+            int inputBasketStockNo = sc.nextInt();
+            if (basketStockNoList.contains(inputBasketStockNo)) {
+                return inputBasketStockNo;
+            } else {
+                System.out.println("목록에 없는 제품 번호입니다. 다시 입력해주세요.");
+                System.out.print(">> ");
+            }
+        }
+    }
+
 }
