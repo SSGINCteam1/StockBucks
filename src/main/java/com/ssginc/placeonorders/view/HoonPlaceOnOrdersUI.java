@@ -61,7 +61,7 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 발주 메뉴 출력 메서드
-    public int placeOnOrders(Scanner sc) {
+    private int placeOnOrders(Scanner sc) {
         System.out.println("===================================\n");
         System.out.println("[발주] \n");
         System.out.println("1. 재고 조회\t2. 발주 신청\t3. 발주 내역 조회\t4. 발주 가능 품목 조회\t5. 종료\n");
@@ -71,7 +71,7 @@ public class HoonPlaceOnOrdersUI {
 
     // ========================== 1. 재고 조회 ==========================
     // 재고 조회 메뉴
-    public void selectStockList() {
+    private void selectStockList() {
         System.out.println("===================================");
         System.out.println("[재고 조회]");
         System.out.println("1. 전체 조회\t2. 카테고리 조회\t3. 키워드 검색");
@@ -134,7 +134,7 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 재고 리스트 출력 메서드
-    public void printStockList(List<HoonSelectStockListDTO> stockList, String title) {
+    private void printStockList(List<HoonSelectStockListDTO> stockList, String title) {
         System.out.println("===================================");
         System.out.println(title);
         System.out.printf("%-8s%-20s%-15s%-15s%-10s\n", "제품번호", "제품명", "재고수량", "제품 카테고리", "제품 단위");
@@ -151,7 +151,7 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 카테고리 입력 메서드
-    public int selectCategory() {
+    private int selectCategory() {
         System.out.println("===================================");
         for (int i = 0; i < category.length; i++) {
             System.out.print((i + 1) + ". " + category[i] + "\t\t");
@@ -163,7 +163,7 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 검색 키워드 입력 메서드
-    public String inputKeyword() {
+    private String inputKeyword() {
         sc.nextLine();  // 입력 버퍼 비워주기
         System.out.println("===================================");
         System.out.println("검색할 단어를 입력하세요.");
@@ -174,7 +174,7 @@ public class HoonPlaceOnOrdersUI {
 
     // ========================== 2. 발주 신청 ==========================
     // 발주 신청 메뉴
-    public void registerPlaceOnOrdersMenu() {
+    private void registerPlaceOnOrdersMenu() {
         System.out.println("===================================");
         System.out.println("[발주 신청]");
         System.out.println();
@@ -219,7 +219,7 @@ public class HoonPlaceOnOrdersUI {
 
     // -------------------------- 2.1 장바구니 품목 선택 --------------------------
     // 품목 선택 메서드
-    public int selectBasketStock(List<Integer> basketStockNoList) {
+    private int selectBasketStock(List<Integer> basketStockNoList) {
         System.out.println("===================================");
         System.out.println("[품목 선택]");
         System.out.println("선택할 품목의 제품번호를 입력하세요.");
@@ -238,7 +238,7 @@ public class HoonPlaceOnOrdersUI {
 
     // -------------------------- 2.1 장바구니 품목 수정 및 삭제 메뉴 --------------------------
     // 선택된 품목에 대해 수정 또는 삭제 메서드
-    public void updateOrDeleteSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
+    private void updateOrDeleteSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
         System.out.println("===================================");
         System.out.println("[선택된 품목 수정, 삭제]");
         System.out.println("1. 장바구니 품목 수정\t2. 장바구니 품목 삭제");
@@ -252,14 +252,14 @@ public class HoonPlaceOnOrdersUI {
             }
             // 장바구니 품목 삭제
             case 2 -> {
-
+                deleteSelectedBasketStock(selectedBasketStock);
             }
         }
     }
 
     // -------------------------- 2.1.1 장바구니 품목 수정 --------------------------
     // 장바구니 품목 수정 메서드
-    public void updateSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
+    private void updateSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
         try (Connection con = dataSource.getConnection()) {
             con.setAutoCommit(false);   // Auto Commit 비활성화
 
@@ -282,8 +282,39 @@ public class HoonPlaceOnOrdersUI {
         }
     }
 
+    // -------------------------- 2.1.1 장바구니 품목 삭제 --------------------------
+    // 장바구니 품목 삭제 메서드
+    private void deleteSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
+        System.out.println("===================================");
+        System.out.println("[선택된 품목 삭제]");
+        System.out.println("선택된 " + selectedBasketStock.getStName() + "을/를 삭제하시겠습니까?");
+        System.out.print("(Y/N)>> ");
+
+        while (true) {
+            String choice = sc.next();
+            if (choice.equalsIgnoreCase("Y")) {
+                int result = placeOnOrdersDAO.deleteBasketStock(this.user.getUsersNo(), selectedBasketStock.getStNo());
+
+                if (result == 1) {
+                    System.out.println("품목이 성공적으로 삭제되었습니다.");
+                    break;
+                } else {
+                    System.out.println("품목을 삭제하는 과정에서 오류가 발생하였습니다.");
+                    CommonUI.displayGoBackMessage();
+                    return;
+                }
+            } else if (choice.equalsIgnoreCase("N")) {
+                CommonUI.displayGoBackMessage();
+                return;
+            } else {
+                System.out.println("잘못된 입력입니다. 다시 입력해주세요.");
+            }
+        }
+
+    }
+
     // 장바구니 리스트 출력 메서드
-    public List<Integer> printBasketList(List<HoonSelectBasketListDTO> basketList) {
+    private List<Integer> printBasketList(List<HoonSelectBasketListDTO> basketList) {
         List<Integer> basketStockNo = new ArrayList<>();
 
         System.out.printf("%-10s%-20s%-10s%-10s%-10s%-20s%-10s\n",
@@ -316,7 +347,7 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 선택한 품목에 대한 정보 출력 메서드
-    public void printSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
+    private void printSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
         System.out.println("===================================");
         System.out.printf("%-10s%-20s%-10s%-10s%-10s%-20s%-10s\n",
                 "제품번호", "제품명", "단가", "발주수량", "발주가격", "제품 카테고리", "제품 단위");

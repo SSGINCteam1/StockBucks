@@ -245,4 +245,25 @@ public class HoonPlaceOnOrdersDAO {
 
     // -------------------------- 2.1.2 장바구니 품목 삭제 --------------------------
     // 장바구니 품목 삭제
+    public int deleteBasketStock(int usersNo, int selectedBaksetStockNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM place_orders_basket
+                WHERE users_no = ? AND st_no = ?
+                """;
+
+        // DB와 connection 연결 및 SQL문 전송
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 유저번호, 제품번호를 SQL문의 파라미터로 setting
+            ps.setInt(1, usersNo);
+            ps.setInt(2, selectedBaksetStockNo);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
 }
