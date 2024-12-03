@@ -53,7 +53,7 @@ public class WishOrdersUI {
         }
     }
 
-    private void selectBigCategory(boolean isView) {
+    public void selectBigCategory(boolean isView) {
         ArrayList<StockDTO> stock1 = stockDAO.selectFood();
         ArrayList<StockDTO> stock2 = stockDAO.selectMd();
 
@@ -100,7 +100,7 @@ public class WishOrdersUI {
     /**
      * 음료 카테고리 조회
      */
-    private void selectBeverageCategory(boolean isView) {
+    public void selectBeverageCategory(boolean isView) {
         ArrayList<PrdCgDTO> prdCg = prdCgDAO.selectPrdCg();
         String menu = isView ? "<음료 조회>\n" : "<음료 주문>\n";
         while (true) {
@@ -131,7 +131,7 @@ public class WishOrdersUI {
         }
     }
 
-    private void selectBeverageMenu(boolean isView, String prdcgName, ArrayList<WishProductsDTO> products) {
+    public void selectBeverageMenu(boolean isView, String prdcgName, ArrayList<WishProductsDTO> products) {
         int preMenu = products.size() + 1;
         int exit = products.size() + 2;
 
@@ -162,7 +162,7 @@ public class WishOrdersUI {
         }
     }
 
-    private void selectBeverageOption(int pNo) {
+    public void selectBeverageOption(int pNo) {
 
         ArrayList<PrdOptDTO> prdopt = prdOptDAO.selectPrdOpt(pNo);
 

@@ -15,6 +15,8 @@ public interface TimOrdersService {
 
     int cancelOrderDetails(OrderDetailsDTO orderDetail);
 
+    
+    
     // =================================== 4. 주문 내역 조회 ===================================
 
     // ---------------------- 4.1. 전체 주문 내역 조회 ----------------------
@@ -50,4 +52,9 @@ public interface TimOrdersService {
     // ---------------------- 4.5. 주문 내역 조회 유틸 메서드 ----------------------
 
     OrderDetailsDTO selectOrdersDetail(int orderNo);
+
+
+    // =================================== 5. 품목 판매 일시 중지 ===================================
+    int updateProductsIsActive(int pno);
+
 }

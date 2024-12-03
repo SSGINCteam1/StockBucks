@@ -806,4 +806,18 @@ public class TimOrdersDAO {
 
 
     // =================================== 5. 품목 판매 중지 ===================================
+
+    public int updateProductsIsActive(Connection conn, int pno) {
+
+        int res = 0;
+
+        String sql = """
+                
+                UPDATE products SET p_state 
+                
+                """;
+
+
+        return res;
+    }
 }
