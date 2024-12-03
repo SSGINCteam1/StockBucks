@@ -10,4 +10,8 @@ public class CommonUI {
         System.out.println("1. 다시 시도    2. 종료");
         System.out.print("\n>>");
     }
+
+    public static void displayWrongSelectMessage() {
+        System.out.println("잘못된 입력입니다. 다시 입력해주세요");
+    }
 }
