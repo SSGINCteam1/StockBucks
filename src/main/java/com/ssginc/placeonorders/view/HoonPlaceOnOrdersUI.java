@@ -5,7 +5,10 @@ import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.placeonorders.model.dao.HoonPlaceOnOrdersDAO;
 import com.ssginc.placeonorders.model.dto.HoonSelectBasketListDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectStockListDTO;
+import com.ssginc.util.HikariCPDataSource;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -15,12 +18,14 @@ public class HoonPlaceOnOrdersUI {
     private final Scanner sc;
     private final HoonPlaceOnOrdersDAO placeOnOrdersDAO;
     private final UsersDTO user;
+    private final DataSource dataSource;
     String[] category = {"디저트", "MD", "일회용품", "원자재", "병음료", "원두"};
 
     public HoonPlaceOnOrdersUI(UsersDTO user) {
         this.sc = new Scanner(System.in);
         placeOnOrdersDAO = new HoonPlaceOnOrdersDAO();
         this.user = user;
+        this.dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
 
     // 발주 메뉴 선택 메서드
@@ -64,6 +69,7 @@ public class HoonPlaceOnOrdersUI {
         return sc.nextInt();
     }
 
+    // ========================== 1. 재고 조회 ==========================
     // 재고 조회 메뉴
     public void selectStockList() {
         System.out.println("===================================");
@@ -127,6 +133,46 @@ public class HoonPlaceOnOrdersUI {
         }
     }
 
+    // 재고 리스트 출력 메서드
+    public void printStockList(List<HoonSelectStockListDTO> stockList, String title) {
+        System.out.println("===================================");
+        System.out.println(title);
+        System.out.printf("%-8s%-20s%-15s%-15s%-10s\n", "제품번호", "제품명", "재고수량", "제품 카테고리", "제품 단위");
+        System.out.println("---------------------------------------------");
+
+        for (HoonSelectStockListDTO stock : stockList) {
+            System.out.printf("%-10s%-20s%-15s%-15s%-10s\n",
+                    stock.getStNo(),
+                    stock.getStName(),
+                    stock.getStQuantity(),
+                    category[stock.getStCategory()],
+                    stock.getStUnit());
+        }
+    }
+
+    // 카테고리 입력 메서드
+    public int selectCategory() {
+        System.out.println("===================================");
+        for (int i = 0; i < category.length; i++) {
+            System.out.print((i + 1) + ". " + category[i] + "\t\t");
+        }
+        System.out.println();
+        System.out.print(">> ");
+
+        return sc.nextInt();
+    }
+
+    // 검색 키워드 입력 메서드
+    public String inputKeyword() {
+        sc.nextLine();  // 입력 버퍼 비워주기
+        System.out.println("===================================");
+        System.out.println("검색할 단어를 입력하세요.");
+        System.out.print(">> ");
+
+        return sc.nextLine();
+    }
+
+    // ========================== 2. 발주 신청 ==========================
     // 발주 신청 메뉴
     public void registerPlaceOnOrdersMenu() {
         System.out.println("===================================");
@@ -160,6 +206,8 @@ public class HoonPlaceOnOrdersUI {
                     // Todo 예외 처리
                 }
                 printSelectedBasketStock(selectedBasketStock);
+                // 선택된 품목에 대해 수정 또는 삭제
+                updateOrDeleteSelectedBasketStock(selectedBasketStock);
             }
 
             // 발주 신청
@@ -169,20 +217,68 @@ public class HoonPlaceOnOrdersUI {
         }
     }
 
-    // 재고 리스트 출력 메서드
-    public void printStockList(List<HoonSelectStockListDTO> stockList, String title) {
+    // -------------------------- 2.1 장바구니 품목 선택 --------------------------
+    // 품목 선택 메서드
+    public int selectBasketStock(List<Integer> basketStockNoList) {
         System.out.println("===================================");
-        System.out.println(title);
-        System.out.printf("%-8s%-20s%-15s%-15s%-10s\n", "제품번호", "제품명", "재고수량", "제품 카테고리", "제품 단위");
-        System.out.println("---------------------------------------------");
+        System.out.println("[품목 선택]");
+        System.out.println("선택할 품목의 제품번호를 입력하세요.");
+        System.out.print(">> ");
 
-        for (HoonSelectStockListDTO stock : stockList) {
-            System.out.printf("%-10s%-20s%-15s%-15s%-10s\n",
-                    stock.getStNo(),
-                    stock.getStName(),
-                    stock.getStQuantity(),
-                    category[stock.getStCategory()],
-                    stock.getStUnit());
+        while (true) {
+            int inputBasketStockNo = sc.nextInt();
+            if (basketStockNoList.contains(inputBasketStockNo)) {
+                return inputBasketStockNo;
+            } else {
+                System.out.println("목록에 없는 제품 번호입니다. 다시 입력해주세요.");
+                System.out.print(">> ");
+            }
+        }
+    }
+
+    // -------------------------- 2.1 장바구니 품목 수정 및 삭제 메뉴 --------------------------
+    // 선택된 품목에 대해 수정 또는 삭제 메서드
+    public void updateOrDeleteSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
+        System.out.println("===================================");
+        System.out.println("[선택된 품목 수정, 삭제]");
+        System.out.println("1. 장바구니 품목 수정\t2. 장바구니 품목 삭제");
+        System.out.print(">> ");
+        int choice = sc.nextInt();
+
+        switch (choice) {
+            // 장바구니 품목 수정
+            case 1 -> {
+                updateSelectedBasketStock(selectedBasketStock);
+            }
+            // 장바구니 품목 삭제
+            case 2 -> {
+
+            }
+        }
+    }
+
+    // -------------------------- 2.1.1 장바구니 품목 수정 --------------------------
+    // 장바구니 품목 수정 메서드
+    public void updateSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
+        try (Connection con = dataSource.getConnection()) {
+            con.setAutoCommit(false);   // Auto Commit 비활성화
+
+            System.out.println("===================================");
+            System.out.println("[선택된 품목 수정]");
+            System.out.println("선택된 " + selectedBasketStock.getStName() + "의 변경할 수량을 입력하세요.");
+            System.out.print(">> ");
+
+            int inputQuantity = sc.nextInt();
+
+            int result = placeOnOrdersDAO.updateBasketStock(con, selectedBasketStock.getStNo(), inputQuantity);
+            if (result != 0) {
+                con.commit();
+            } else {
+                con.rollback();
+                System.out.println("수량 변경에 실패했습니다.");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -234,46 +330,7 @@ public class HoonPlaceOnOrdersUI {
                 selectedBasketStock.getPlaceOrdersPrice(),
                 category[selectedBasketStock.getStCategory()],
                 selectedBasketStock.getStUnit());
-    }
-
-    // 카테고리 입력 메서드
-    public int selectCategory() {
-        System.out.println("===================================");
-        for (int i = 0; i < category.length; i++) {
-            System.out.print((i + 1) + ". " + category[i] + "\t\t");
-        }
-        System.out.println();
-        System.out.print(">> ");
-
-        return sc.nextInt();
-    }
-
-    // 검색 키워드 입력 메서드
-    public String inputKeyword() {
-        sc.nextLine();  // 입력 버퍼 비워주기
-        System.out.println("===================================");
-        System.out.println("검색할 단어를 입력하세요.");
-        System.out.print(">> ");
-
-        return sc.nextLine();
-    }
-
-    // 품목 선택 메서드
-    public int selectBasketStock(List<Integer> basketStockNoList) {
-        System.out.println("===================================");
-        System.out.println("[품목 선택]");
-        System.out.println("선택할 품목의 제품번호를 입력하세요.");
-        System.out.print(">> ");
-
-        while (true) {
-            int inputBasketStockNo = sc.nextInt();
-            if (basketStockNoList.contains(inputBasketStockNo)) {
-                return inputBasketStockNo;
-            } else {
-                System.out.println("목록에 없는 제품 번호입니다. 다시 입력해주세요.");
-                System.out.print(">> ");
-            }
-        }
+        System.out.println("---------------------------------------------");
     }
 
 }

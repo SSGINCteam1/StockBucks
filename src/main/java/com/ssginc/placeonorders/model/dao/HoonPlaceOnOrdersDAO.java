@@ -18,6 +18,7 @@ public class HoonPlaceOnOrdersDAO {
         dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
 
+    // ========================== 1. 재고 조회 ==========================
     // 지점 재고 전체 조회
     public List<HoonSelectStockListDTO> selectAllStockList() {
         List<HoonSelectStockListDTO> stockList = null;
@@ -131,6 +132,8 @@ public class HoonPlaceOnOrdersDAO {
         return stockList;
     }
 
+    // ========================== 2. 발주 신청 ==========================
+    // -------------------------- 2.1 장바구니 품목 목록 조회
     // 장바구니에 담은 품목 조회
     public List<HoonSelectBasketListDTO> selectBasketListByUsersNo(int usersNo) {
         List<HoonSelectBasketListDTO> basketList = null;
@@ -215,4 +218,30 @@ public class HoonPlaceOnOrdersDAO {
         return dto;
     }
 
+    // -------------------------- 2.1.1 장바구니 품목 수정 --------------------------
+    // 장바구니 품목 수정
+    public int updateBasketStock(Connection con, int selectedBasketStockNo, int inputQuantity) {
+        int res = 0;
+        String sql = """
+                UPDATE place_orders_basket
+                SET pob_quantity = ?
+                WHERE st_no = ?
+                """;
+
+        // DB와 connection 연결 및 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 제품번호와 수정할 수량을 SQL문의 파라미터로 setting
+            ps.setInt(1, inputQuantity);
+            ps.setInt(2, selectedBasketStockNo);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
+
+    // -------------------------- 2.1.2 장바구니 품목 삭제 --------------------------
+    // 장바구니 품목 삭제
 }
