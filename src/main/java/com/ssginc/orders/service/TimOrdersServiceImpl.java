@@ -7,9 +7,7 @@ import com.ssginc.util.HikariCPDataSource;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +26,58 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         timOrdersDAO = new TimOrdersDAO();
         dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
+
+
+    // =================================== 1. 품목 조회 ===================================
+
+
+    @Override
+    public ArrayList<StockDTO> selectEtcListAll(int type) {
+        ArrayList<StockDTO> stocks = null;
+
+        try(Connection conn = dataSource.getConnection()){
+            stocks = timOrdersDAO.selectEtcListAll(conn, type);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public ArrayList<PrdCgDTO> selectPrdCgListAll() {
+
+        ArrayList<PrdCgDTO> prdCgs = null;
+
+        try(Connection conn = dataSource.getConnection()) {
+            prdCgs = timOrdersDAO.selectPrdCgListAll(conn);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return prdCgs;
+    }
+
+    @Override
+    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(int prdcgNo, boolean isView) {
+
+        ArrayList<ProductsDTO> prds = null;
+
+        try(Connection conn = dataSource.getConnection()) {
+            prds = timOrdersDAO.selectProductsListByPrdcgNo(conn, prdcgNo, isView);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return prds;
+
+    }
+
+    @Override
+    public ArrayList<PrdOptDTO> selectPrdOpt(int pNo) {
+        return null;
+    }
+    
 
     // =================================== 3. 주문 취소 ===================================
 
@@ -95,21 +145,17 @@ public class TimOrdersServiceImpl implements TimOrdersService {
                             consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * opt.getQuantity());
                         }
                     }
-                } else {
-                    consumptions = timOrdersDAO.selectOtherConsumptionList(conn, orderNo); // 이외 상품 소모량
-                    for (ConsumptionDTO c : consumptions) {
-                        consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * prd.getQuantity());
-                    }
+                } else { // 음료 외 상품일시
+                    consumptionMap.put(prd.getPno(), consumptionMap.getOrDefault(consumptionMap.get(prd.getPno()), 0) + prd.getQuantity());
                 }
             }
 
             int res2 = 1;
 
             for (int key : consumptionMap.keySet()) {
-                int stockNo = key;
                 int stockConsumption = consumptionMap.get(key);
 
-                res2 *= timOrdersDAO.updateStockForRestore(conn, stockNo, stockConsumption);
+                res2 *= timOrdersDAO.updateStockForRestore(conn, key, stockConsumption);
             }
 
             res = res1 * res2;
@@ -446,12 +492,14 @@ public class TimOrdersServiceImpl implements TimOrdersService {
     // =================================== 5. 품목 판매 중지 ===================================
 
     @Override
-    public int updateProductsIsActive(int pno) {
+    public int updateProductsIsActive(int pno, boolean isActive) {
 
         int res = 0;
 
+        int state = isActive ? 1 : 0;
+
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.updateProductsIsActive(conn, pno);
+            res = timOrdersDAO.updateProductsIsActive(conn, state, pno);
         } catch (Exception e){
             e.printStackTrace();
         }

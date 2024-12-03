@@ -14,6 +14,41 @@ public class TimOrdersDAO {
 
 
 
+
+    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(Connection conn, int prdcgNo, boolean isView) {
+        ArrayList<ProductsDTO> selectProducts = new ArrayList<>();
+
+        String sql = null;
+
+        if (isView) {
+            sql ="SELECT p_no, p_name, p_price FROM products where prdcg_no = ?";
+        } else {
+            sql = "SELECT p_no, p_name, p_price FROM products where prdcg_no = ? and p_state = 1";
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, prdcgNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    selectProducts.add(
+                            ProductsDTO.builder()
+                                    .pno(rs.getInt("p_no"))
+                                    .pname(rs.getString("p_name"))
+                                    .price(rs.getInt("p_price"))
+                                    .build()
+                    );
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return selectProducts;
+    }
+
+
+
     // =================================== 3. 주문 취소 ===================================
     public int deleteOrdersForCancelOrder(Connection conn, int orderNo) {
         int res = 0;
@@ -175,37 +210,37 @@ public class TimOrdersDAO {
     }
 
 
-    public List<ConsumptionDTO> selectOtherConsumptionList(Connection conn, int orderNo) {
-        List<ConsumptionDTO> res = new ArrayList<>();
-
-        String sql = """
-                SELECT st_no, ost_quantity
-                FROM ORDERS_STOCK OS
-                JOIN STOCK S using (st_no)
-                WHERE ORDERS_NO = ?
-                ORDER BY st_no;
-                """;
-
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, orderNo);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    res.add(ConsumptionDTO.builder()
-                            .stockNo(rs.getInt("st_no"))
-                            .consumption(rs.getInt("pst_consume"))
-                            .build()
-                    );
-                }
-            }
-
-        } catch ( Exception e ) {
-            e.printStackTrace();
-        }
-
-        return res;
-    }
+//    public List<ConsumptionDTO> selectOtherConsumptionList(Connection conn, int orderNo) {
+//        List<ConsumptionDTO> res = new ArrayList<>();
+//
+//        String sql = """
+//                SELECT st_no, ost_quantity
+//                FROM ORDERS_STOCK OS
+//                JOIN STOCK S using (st_no)
+//                WHERE ORDERS_NO = ?
+//                ORDER BY st_no;
+//                """;
+//
+//        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+//
+//            ps.setInt(1, orderNo);
+//
+//            try (ResultSet rs = ps.executeQuery()) {
+//                while (rs.next()) {
+//                    res.add(ConsumptionDTO.builder()
+//                            .stockNo(rs.getInt("st_no"))
+//                            .consumption(rs.getInt("pst_consume"))
+//                            .build()
+//                    );
+//                }
+//            }
+//
+//        } catch ( Exception e ) {
+//            e.printStackTrace();
+//        }
+//
+//        return res;
+//    }
 
 
 
@@ -807,17 +842,83 @@ public class TimOrdersDAO {
 
     // =================================== 5. 품목 판매 중지 ===================================
 
-    public int updateProductsIsActive(Connection conn, int pno) {
+    public int updateProductsIsActive(Connection conn, int state, int pno) {
 
         int res = 0;
 
         String sql = """
-                
-                UPDATE products SET p_state 
-                
+                UPDATE products 
+                SET p_state = ? 
+                WHERE p_no = ?
                 """;
 
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, state);
+            ps.setInt(2, pno);
+
+            res = ps.executeUpdate();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         return res;
+    }
+
+
+    // =================================== 1. 품목 조회 ===================================
+
+    public ArrayList<StockDTO> selectEtcListAll(Connection conn, int type) {
+
+        ArrayList<StockDTO> stocks = new ArrayList<>();
+
+        String sql = """
+                SELECT st_no, st_name, st_price
+                FROM stocks
+                WHERE st_owner = 1
+                AND st_category = ?
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, type);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    stocks.add(StockDTO.builder()
+                            .stNo(rs.getInt("st_no"))
+                            .stName(rs.getString("st_name"))
+                            .price(rs.getInt("st_price"))
+                            .build());
+                }
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return stocks;
+    }
+
+    public ArrayList<PrdCgDTO> selectPrdCgListAll(Connection conn) {
+        ArrayList<PrdCgDTO> selectProducts = new ArrayList<>();
+
+        String sql = "SELECT prdcg_no, prdcg_name FROM products WHERE prdcg_state = 1";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+
+                selectProducts.add(
+                        PrdCgDTO.builder()
+                                .prdCgNo(rs.getInt("prdcg_no"))
+                                .prdCgName(rs.getString("prdcg_name"))
+                        .build()
+                );
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return selectProducts;
     }
 }

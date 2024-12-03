@@ -3,10 +3,7 @@ package com.ssginc.orders.view;
 import com.ssginc.Main;
 import com.ssginc.common.view.CommonUI;
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.orders.model.dto.OptionsDTO;
-import com.ssginc.orders.model.dto.OrderDetailsDTO;
-import com.ssginc.orders.model.dto.OrdersSelectDTO;
-import com.ssginc.orders.model.dto.ProductsDTO;
+import com.ssginc.orders.model.dto.*;
 import com.ssginc.orders.service.TimOrdersService;
 import com.ssginc.orders.service.TimOrdersServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -19,14 +16,13 @@ import java.util.Scanner;
 public class OrdersUI {
     private final Scanner sc;
     private final TimOrdersService timOrdersService;
-    private final WishOrdersUI wishOrdersUI;
 
 
     public OrdersUI() {
         this.sc = new Scanner(System.in);
         this.timOrdersService = new TimOrdersServiceImpl();
-        this.wishOrdersUI = new WishOrdersUI();
     }
+
 
     // =================================== 주문 메뉴 실행 ===================================
 
@@ -41,10 +37,19 @@ public class OrdersUI {
             int choice = sc.nextInt();
 
             switch (choice) {
+                case 1 -> {
+
+                }
+                case 2 -> {
+
+                }
+                case 3 -> {
+
+                }
                 case 4 -> this.viewOrdersHistory(); // 주문 내역 조회
 //                case 5 -> this.displayPauseSales(); // 품목 판매 일시 중지
                 case 6 -> { // 상위 메뉴
-                    System.out.println("상위 메뉴로 이동합니다.");
+                    CommonUI.displayGoBackMessage();
                     return;
                 }
                 case 7 -> { // 종료
@@ -54,6 +59,201 @@ public class OrdersUI {
                 default -> CommonUI.displayWrongSelectMessage();
             }
 
+        }
+    }
+
+    // =================================== 1. 품목 조회 ===================================
+
+    private void displayPrdAndSt(boolean isView) {
+        String[] menus = {"음료", "푸드", "상품", "상위 메뉴", "종료"};
+        String menu = isView ? "<대분류 조회>\n" : "<품목 주문>\n";
+
+        while (true) {
+            System.out.println(menu);
+            for (int i = 0; i < menus.length; i++) {
+                System.out.print((i + 1) + ". \t" + menus[i] + "\t");
+            }
+            System.out.print("\n>> ");
+            int choice = sc.nextInt();
+
+            System.out.println("\n=======================================\n");
+
+            if (choice == 1) {
+                this.selectBeverageCategory(isView);
+            } else if (choice == 2) {
+                selectFoodOrMdMenu(true, true);
+            } else if (choice == 3) {
+                selectFoodOrMdMenu(true, false);
+            } else if (choice == 4) {
+                CommonUI.displayGoBackMessage();
+                return;
+            } else if (choice == 5) {
+                CommonUI.displayExitMessage();
+                System.exit(0);
+            }
+        }
+    }
+
+
+    // -------------------------- 1.1. 음료 품목 조회 --------------------------
+
+
+    /**
+     * 음료 카테고리 조회
+     */
+    private void selectBeverageCategory(boolean isView) {
+        List<PrdCgDTO> prdCgs = timOrdersService.selectPrdCgListAll();
+
+        String menu = isView ? "<음료 조회>\n" : "<음료 주문>\n";
+
+        while (true) {
+            System.out.println(menu);
+            for (int i = 0; i < prdCgs.size(); i++) {
+                System.out.print((i + 1) + ". \t" + prdCgs.get(i).getPrdCgName() + "\t");
+            }
+
+            System.out.print((prdCgs.size() + 1) + ". \t" + "병음료" + "\t");
+            System.out.print((prdCgs.size() + 2) + ". \t" + "상위 메뉴" + "\t");
+            System.out.print((prdCgs.size() + 3) + ". \t" + "종료" + "\t");
+            System.out.print("\n>> ");
+            int choice = sc.nextInt();
+
+            System.out.println("\n=======================================\n");
+
+            if (choice >= 1 && choice <= prdCgs.size()) { // 음료
+                ArrayList<ProductsDTO> products = timOrdersService.selectProductsListByPrdcgNo(choice, isView);
+                selectBeverageMenu(isView, prdCgs.get(choice - 1).getPrdCgName(), products);
+            } else if (choice == prdCgs.size() + 1) { // 병음료
+                ArrayList<StockDTO> products = timOrdersService.selectEtcListAll(3);
+                selectBeverageMenu(isView, "병음료", products);
+            }
+
+            switch (choice) {
+                case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11:
+                    selectBeverageMenu(isView, prdCg.get(choice - 1).getPrdCgName(), products);
+                    break;
+                case 12:
+                    return;
+                default:
+            }
+            System.out.println("\n=======================================\n");
+        }
+    }
+
+    private void selectBeverageMenu(boolean isView, String prdcgName, ArrayList<Object> products, boolean isBeverage) {
+        
+
+        int preMenu = products.size() + 1;
+        int exit = products.size() + 2;
+
+        String menu = isView ? "조회>\n" : "주문>\n";
+
+        while (true) {
+            System.out.println("<" + prdcgName + " " + menu);
+            for (int i = 0; i < products.size(); i++) {
+                System.out.println((i + 1) + ". " + products.get(i).getPname() + " - " + products.get(i).getPrice() + "원");
+            }
+            System.out.print(preMenu + ". \t" + "상위 메뉴");
+            System.out.print("\t" + exit + ". \t" + "종료");
+            System.out.print("\n>> ");
+            int choice = sc.nextInt();
+            System.out.println("\n선택한 번호 : " + choice);
+            System.out.println("\n=======================================\n");
+
+            if (choice >= 1 && choice < preMenu) {
+                selectBeverageOption(products.get(choice - 1).getPno());
+            }else if (choice == preMenu) {
+                return;
+            } else if (choice == exit) {
+                CommonUI.displayExitMessage();
+                System.exit(0);
+            }
+
+            System.out.println("\n=======================================\n");
+        }
+    }
+
+    private void selectBeverageOption(int pNo) {
+
+        ArrayList<PrdOptDTO> prdopt = timOrdersService.selectPrdOpt(pNo);
+
+        System.out.println("\n=======================================\n");
+
+        int re = prdopt.size() + 1;
+        int exit = prdopt.size() + 2;
+
+        while (true){
+            System.out.println("<옵션 선택>\n");
+            for (int i = 0; i < prdopt.size(); i++) {
+                System.out.println((i + 1) + ". "
+                        + prdopt.get(i).getOptCategoryName());
+
+                List<PrdOptDetailDTO> details = prdopt.get(i).getOptionDetails();
+
+                for (int j = 0; j < details.size(); j++) {
+                    System.out.print("\t" + (j + 1) + ". "
+                            + details.get(j).getOptionName());
+                }
+
+                System.out.println();
+            }
+
+            System.out.print("\n" + re + ". " + "상위 메뉴");
+            System.out.print("\t" + exit + ". " + "종료\n");
+            System.out.print("\n옵션을 선택하세요.>> ");
+            int choice = sc.nextInt();
+
+            System.out.println("\n=======================================\n");
+
+
+//            if (choice >= 1 && choice < prdopt.size()) {
+//                selectBeverageOption();
+//            }
+//            else if (choice == re) {
+//                return;
+//            } else if (choice == exit) {
+//                CommonUI.displayExitMessage();
+//                System.exit(0);
+
+        }
+    }
+
+
+    // -------------------------- 1.2. 푸드/MD 품목 조회 --------------------------
+
+    /**
+     * 푸드 / MD 조회
+     */
+    private void selectFoodOrMdMenu(boolean isView, boolean isFood) {
+
+        int type1 = isFood ? 0 : 1;
+
+        ArrayList<StockDTO> products = timOrdersService.selectEtcListAll(type1);
+
+        String type = isFood ? "푸드" : "MD";
+        String menu = isView ? "<" + type + "조회>\n" : "<" + type + "주문>\n";
+
+        while (true) {
+            System.out.println(menu);
+            for (int i = 0; i < products.size(); i++) {
+                System.out.println((i + 1) + ". " + products.get(i).getStName() + " - " + products.get(i).getPrice() + "원");
+            }
+
+            System.out.println("\n1. 상위 메뉴\t2.종료\n");
+            System.out.print(">> ");
+            int choice = sc.nextInt();
+
+            if (choice == 1) {
+                CommonUI.displayGoBackMessage();
+                return;
+            } else if (choice == 2) {
+                CommonUI.displayExitMessage();
+                System.exit(0);
+            } else {
+                CommonUI.displayWrongSelectMessage();
+            }
+
+            System.out.println("\n=======================================\n");
         }
     }
 
@@ -81,7 +281,7 @@ public class OrdersUI {
         int choice = sc.nextInt();
 
         if (choice == 1) {
-            System.out.println("상위 메뉴로 이동합니다.");
+            CommonUI.displayGoBackMessage();
         } else {
             CommonUI.displayExitMessage();
             System.exit(0);
@@ -166,6 +366,7 @@ public class OrdersUI {
                 int choice = sc.nextInt();
 
                 if (choice == 1) {
+                    CommonUI.displayGoBackMessage();
                     return;
                 } else if (choice == 2) {
                     CommonUI.displayExitMessage();
@@ -193,7 +394,7 @@ public class OrdersUI {
                     }
                 }
                 case 13 -> {
-                    System.out.println("상위 메뉴로 이동합니다.");
+                    CommonUI.displayGoBackMessage();
                     return;
                 }
                 case 14 -> {
@@ -259,7 +460,7 @@ public class OrdersUI {
                     year = sc.nextInt();
                     break;
                 case 4 :
-                    System.out.println("\n상위 메뉴로 이동합니다.");
+                    CommonUI.displayGoBackMessage();
                     return;
                 case 5 :
                     CommonUI.displayExitMessage();
@@ -296,7 +497,7 @@ public class OrdersUI {
             switch (choice){
                 case 1 -> this.selectUsers(false, null, null);
                 case 2 -> {
-                    System.out.println("\n상위 메뉴로 이동합니다.");
+                    CommonUI.displayGoBackMessage();
                     return;
                 }
                 case 3 -> {
@@ -353,7 +554,7 @@ public class OrdersUI {
 
                 }
                 case 2 -> {
-                    System.out.println("\n상위 메뉴로 이동합니다.");
+                    CommonUI.displayGoBackMessage();
                     return;
                 }
                 case 3 -> {
@@ -423,7 +624,7 @@ public class OrdersUI {
                     }
                 }
                 case 13 -> {
-                    System.out.println("상위 메뉴로 이동합니다.");
+                    CommonUI.displayGoBackMessage();
                     return;
                 }
                 case 14 -> {
@@ -496,6 +697,7 @@ public class OrdersUI {
                     this.displayCancelOrders(orderDetail);
                 }
                 else if (select == 2){
+                    CommonUI.displayGoBackMessage();
                     return;
                 } else if (select == 3){
                     CommonUI.displayExitMessage();
@@ -513,6 +715,7 @@ public class OrdersUI {
                 int select = sc.nextInt();
 
                 if (select == 1){
+                    CommonUI.displayGoBackMessage();
                     return;
                 } else if (select == 2){
                     CommonUI.displayExitMessage();
@@ -545,9 +748,8 @@ public class OrdersUI {
             System.out.println("1. 음료\t2. 푸드\t3. 상품\t4. 상위 메뉴\t5. 종료\n");
             System.out.print(">> ");
             int choice = sc.nextInt();
-
             switch (choice){
-                case 1 -> wishOrdersUI.selectBeverageCategory(true);
+//                case 1 -> wishOrdersUI.selectBeverageCategory(true);
                 case 2 -> {
 
                 }
@@ -555,7 +757,7 @@ public class OrdersUI {
 
                 }
                 case 4 -> {
-                    System.out.println("상위 메뉴로 이동합니다.");
+                    CommonUI.displayGoBackMessage();
                     return;
                 }
                 case 5 -> {
@@ -566,7 +768,8 @@ public class OrdersUI {
             }
         }
 
-
-
     }
+    
+    // 판매 일시 중지 
+    // 판매 일시 중지 복구
 }

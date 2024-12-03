@@ -1,8 +1,7 @@
 package com.ssginc.orders.service;
 
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.orders.model.dto.OrderDetailsDTO;
-import com.ssginc.orders.model.dto.OrdersSelectDTO;
+import com.ssginc.orders.model.dto.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -55,6 +54,15 @@ public interface TimOrdersService {
 
 
     // =================================== 5. 품목 판매 일시 중지 ===================================
-    int updateProductsIsActive(int pno);
+    int updateProductsIsActive(int pno, boolean isActive);
 
+
+    // =================================== 1. 품목 조회 ===================================
+    ArrayList<StockDTO> selectEtcListAll(int type);
+
+    ArrayList<ProductsDTO> selectProductsListByPrdcgNo(int prdcgNo, boolean isView);
+
+    ArrayList<PrdOptDTO> selectPrdOpt(int pNo);
+
+    ArrayList<PrdCgDTO> selectPrdCgListAll();
 }
