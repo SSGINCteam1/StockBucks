@@ -183,7 +183,7 @@ public class HoonPlaceOnOrdersUI {
             System.out.println("회원 정보가 잘못되었습니다.");
             return;
         }
-        // 장바구니에 담은 품목 리스트 출력
+        // 로그인한 유저가 장바구니에 담은 품목 리스트 출력
         List<HoonSelectBasketListDTO> basketList = placeOnOrdersDAO.selectBasketListByUsersNo(this.user.getUsersNo());
         // 선택된 품목이 품목 리스트에 존재하는지 확인하기 위해 품목 리스트 번호
         List<Integer> basketStockNoList = this.printBasketList(basketList);
@@ -270,7 +270,7 @@ public class HoonPlaceOnOrdersUI {
 
             int inputQuantity = sc.nextInt();
 
-            int result = placeOnOrdersDAO.updateBasketStock(con, selectedBasketStock.getStNo(), inputQuantity);
+            int result = placeOnOrdersDAO.updateBasketStock(con, this.user.getUsersNo(), selectedBasketStock.getStNo(), inputQuantity);
             if (result != 0) {
                 con.commit();
             } else {

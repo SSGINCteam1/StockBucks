@@ -220,19 +220,20 @@ public class HoonPlaceOnOrdersDAO {
 
     // -------------------------- 2.1.1 장바구니 품목 수정 --------------------------
     // 장바구니 품목 수정
-    public int updateBasketStock(Connection con, int selectedBasketStockNo, int inputQuantity) {
+    public int updateBasketStock(Connection con, int usersNo, int selectedBasketStockNo, int inputQuantity) {
         int res = 0;
         String sql = """
                 UPDATE place_orders_basket
                 SET pob_quantity = ?
-                WHERE st_no = ?
+                WHERE users_no = ? AND st_no = ?
                 """;
 
         // DB와 connection 연결 및 SQL문 전송
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            // 전달받은 제품번호와 수정할 수량을 SQL문의 파라미터로 setting
+            // 전달받은 유저번호, 제품번호와 수정할 수량을 SQL문의 파라미터로 setting
             ps.setInt(1, inputQuantity);
-            ps.setInt(2, selectedBasketStockNo);
+            ps.setInt(2, usersNo);
+            ps.setInt(3, selectedBasketStockNo);
 
             res = ps.executeUpdate();
         } catch (Exception e) {
