@@ -290,7 +290,26 @@ public class HoonPlaceOnOrdersDAO {
     }
 
     // 발주_재고물품 테이블에 추가
+    public int insertPlaceOrdersStock(Connection con, int poNo, int stNo, int placeOrdersQuantity) {
+        int res = 0;
+        String sql = """
+                INSERT INTO place_orders_stock (po_no, st_no, post_quantity) VALUES (?, ?, ?)
+                """;
 
+        // DB에 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 발주번호, 제품번호, 발주수량을 SQL문의 파라미터로 setting
+            ps.setInt(1, poNo);
+            ps.setInt(2, stNo);
+            ps.setInt(3, placeOrdersQuantity);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
 
     // 발주 장바구니 테이블에서 삭제
 
