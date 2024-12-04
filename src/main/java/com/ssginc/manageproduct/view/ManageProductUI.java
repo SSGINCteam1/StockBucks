@@ -62,7 +62,7 @@ public class ManageProductUI {
                 case 0:
                     System.out.println("프로그램을 종료합니다.");
 //                    sc.close();
-                    return;
+                    System.exit(0);
                 default:
                     System.out.println("올바른 번호를 입력하세요.");
             }
@@ -131,7 +131,7 @@ public class ManageProductUI {
 
         System.out.println("1. 품목 선택");
         System.out.println("2. 품목 추가");
-        System.out.println("3. 처음으로");
+        System.out.println("0. 종료");
         System.out.print("메뉴를 선택하세요: ");
 
         int choice = sc.nextInt();
@@ -145,9 +145,9 @@ public class ManageProductUI {
             case 2:
                 insertProduct();
                 break;
-            case 3:
-                selectManageProductMenu();
-                break;
+            case 0:
+                System.out.println("프로그램을 종료합니다.");
+                System.exit(0);
             default:
                 System.out.println("올바른 번호를 입력하세요.");
         }
