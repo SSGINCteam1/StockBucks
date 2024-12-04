@@ -1,5 +1,6 @@
 package com.ssginc.login.view;
 
+import com.ssginc.common.view.ANSIStyle;
 import com.ssginc.common.view.CommonUI;
 import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.login.model.dto.UsersDTOTest;
@@ -18,8 +19,9 @@ public class LoginUI {
     }
 
     public void signUp() {
-        System.out.println("===================================\n");
-        System.out.println("[회원가입]");
+        System.out.println("============================================");
+        System.out.printf("%-30s", "[회원 가입]");
+        System.out.println("============================================\n");
 
         String id = promptInput("아이디 입력 >> ");
         String password = promptInput("비밀번호 입력 >> ");
@@ -41,7 +43,7 @@ public class LoginUI {
 
     public UsersDTO loginMenu() {
         while (true) {
-            int choice = displayStartMenu(sc);
+            int choice = displayStartMenu();
             sc.nextLine(); // 버퍼 정리
 
             switch (choice) {
@@ -59,15 +61,15 @@ public class LoginUI {
                     System.exit(0);
                     break;
                 default:
-                    System.out.println("잘못된 입력입니다. 프로그램을 종료합니다.");
-                    System.exit(0);
+                    CommonUI.displayWrongSelectMessage();
             }
         }
     }
 
     private UsersDTO login(){
-        System.out.println("===================================\n");
-        System.out.println("[로그인] \n");
+        System.out.println("==================================================================");
+        CommonUI.printCentered("[로그인]");
+        System.out.println("==================================================================\n");
 
         String id = inputId();
         String pw = inputPw();
@@ -83,17 +85,17 @@ public class LoginUI {
         }
 
         System.out.println("\n로그인에 성공하였습니다.\n");
+
         welcomeUser(user);
 
         return user;
     }
 
     private void handleLoginFailure(String message) {
-        System.out.println("\n" + message + "\n");
+        System.out.println("\n" + ANSIStyle.RED + message + "\n" + ANSIStyle.RESET);
         CommonUI.displayAgainOrExitMessage();
         if (sc.nextInt() == 1) {
             sc.nextLine(); // 버퍼 정리
-            login();
         } else {
             CommonUI.displayExitMessage();
         }
@@ -111,7 +113,7 @@ public class LoginUI {
             default :
                 role = "사원";
         }
-        System.out.println(user.getUsersName() + "(" + role + ")" + "님 환영합니다.");
+        System.out.println(ANSIStyle.BOLD + ANSIStyle.GREEN + user.getUsersName() + "(" + role + ")" + "님 환영합니다." + ANSIStyle.RESET);
     }
 
     private String promptInput(String message) {
@@ -134,20 +136,20 @@ public class LoginUI {
         return promptInput("\n패스워드 입력 >> ");
     }
 
-    private static int displayStartMenu(Scanner scanner) {
-        System.out.println("===================================\n");
-        System.out.println("\tStockBucks 재고 입출고 관리 시스템\n");
+    private int displayStartMenu() {
+        System.out.println("==================================================================");
+        CommonUI.printCentered(ANSIStyle.BOLD + ANSIStyle.GREEN + "StockBucks 재고 입출고 관리 시스템\n" + ANSIStyle.RESET);
         System.out.println(getAsciiArt());
-        System.out.println("===================================\n");
-        System.out.println("1. 회원 가입    2. 로그인    3. 종료");
-        System.out.print("\n>>(숫자 입력): ");
-        return scanner.nextInt();
+        System.out.println("==================================================================");
+        System.out.printf("%-20s %-20s %-20s\n", "1.회원 가입", "2. 로그인", ANSIStyle.RED + "3. 종료" + ANSIStyle.RESET);
+
+        return CommonUI.safeInput(sc);
     }
 
 
 
     private static String getAsciiArt() {
-        return """
+        return ANSIStyle.BOLD + ANSIStyle.GREEN + """
 ⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣶⣿⣿⣿⣿⣿⣿⣿⡏⢹⣿⣿⣿⣿⣿⣿⣿⣶⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⢀⣴⣾⣿⣿⣿⣿⣿⣿⣿⣟⠉⠉⠀⠀⠉⠉⣻⣿⣿⣿⣿⣿⣿⣿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀
@@ -170,6 +172,6 @@ public class LoginUI {
 ⠀⠀⠀⠀⠀⠀⠀⠀⠻⠏⢰⣿⠁⣼⡿⠁⣰⡿⠁⠀⠀⠀⠀⠈⢿⣆⠈⢿⣦⠈⣿⡄⠻⠟⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠃⠰⣿⠃⢠⣿⡇⠀⠀⠀⠀⠀⠀⢸⣿⡄⠘⣿⠆⠘⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
  ⠀
-                """;
+                """ + ANSIStyle.RESET;
     }
 }

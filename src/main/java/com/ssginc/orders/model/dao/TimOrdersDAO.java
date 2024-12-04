@@ -4,6 +4,7 @@ import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.orders.model.dto.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.security.PublicKey;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -12,18 +13,15 @@ import java.util.List;
 @Slf4j
 public class TimOrdersDAO {
 
-
-
-
-    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(Connection conn, int prdcgNo, boolean isView) {
+    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(Connection conn, int prdcgNo, boolean isOrder) {
         ArrayList<ProductsDTO> selectProducts = new ArrayList<>();
 
         String sql = null;
 
-        if (isView) {
-            sql ="SELECT p_no, p_name, p_price FROM products where prdcg_no = ?";
+        if (!isOrder) {
+            sql ="SELECT p_no, p_name, p_price, p_state FROM products where prdcg_no = ?";
         } else {
-            sql = "SELECT p_no, p_name, p_price FROM products where prdcg_no = ? and p_state = 1";
+            sql = "SELECT p_no, p_name, p_price, p_state FROM products where prdcg_no = ? and p_state = 1";
         }
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -37,11 +35,12 @@ public class TimOrdersDAO {
                                     .pno(rs.getInt("p_no"))
                                     .pname(rs.getString("p_name"))
                                     .price(rs.getInt("p_price"))
+                                    .isActive(rs.getInt("p_state") == 1)
                                     .build()
                     );
                 }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return selectProducts;
@@ -59,8 +58,8 @@ public class TimOrdersDAO {
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderNo);
             res = ps.executeUpdate();
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return res;
     }
@@ -78,8 +77,8 @@ public class TimOrdersDAO {
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderNo);
             res = ps.executeUpdate();
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -94,8 +93,8 @@ public class TimOrdersDAO {
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderNo);
             res = ps.executeUpdate();
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return res;
     }
@@ -109,10 +108,9 @@ public class TimOrdersDAO {
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderNo);
             res = ps.executeUpdate();
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
         return res;
     }
 
@@ -132,8 +130,8 @@ public class TimOrdersDAO {
 
             res = ps.executeUpdate();
 
-        } catch ( Exception e ){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -165,8 +163,8 @@ public class TimOrdersDAO {
                 }
             }
 
-        } catch ( Exception e ) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -201,48 +199,13 @@ public class TimOrdersDAO {
                 }
             }
 
-        } catch ( Exception e ) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
 
     }
-
-
-//    public List<ConsumptionDTO> selectOtherConsumptionList(Connection conn, int orderNo) {
-//        List<ConsumptionDTO> res = new ArrayList<>();
-//
-//        String sql = """
-//                SELECT st_no, ost_quantity
-//                FROM ORDERS_STOCK OS
-//                JOIN STOCK S using (st_no)
-//                WHERE ORDERS_NO = ?
-//                ORDER BY st_no;
-//                """;
-//
-//        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-//
-//            ps.setInt(1, orderNo);
-//
-//            try (ResultSet rs = ps.executeQuery()) {
-//                while (rs.next()) {
-//                    res.add(ConsumptionDTO.builder()
-//                            .stockNo(rs.getInt("st_no"))
-//                            .consumption(rs.getInt("pst_consume"))
-//                            .build()
-//                    );
-//                }
-//            }
-//
-//        } catch ( Exception e ) {
-//            e.printStackTrace();
-//        }
-//
-//        return res;
-//    }
-
-
 
     // =================================== 4. 주문 내역 조회 ===================================
 
@@ -272,8 +235,8 @@ public class TimOrdersDAO {
                 }
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return orders;
@@ -291,8 +254,8 @@ public class TimOrdersDAO {
                 res = rs.getInt(1);
             }
 
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -301,140 +264,53 @@ public class TimOrdersDAO {
     // ---------------------- 4.2. 기간별 주문 내역 조회 ----------------------
     // 년도별 주문 내역 목록 조회
 
-    public ArrayList<OrdersSelectDTO> selectOrderListByYear(Connection conn, int year, int pageSize, int offset) {
+
+    public ArrayList<OrdersSelectDTO> selectOrderListByPeriod(Connection conn, String start, String end, int pageSize, int offset) {
+
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
         String sql = """
                 SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL 
                 FROM ORDERS 
                 JOIN (USERS) USING (USERS_NO)
-                WHERE YEAR(ORDERS_DATE) = ?
+                WHERE ORDERS_DATE BETWEEN ? AND ?
                 ORDER BY ORDERS_DATE
                 LIMIT ? OFFSET ?
                  """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, year);
-            ps.setInt(2, pageSize);
-            ps.setInt(3, offset);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    orders.add(mapToOrdersSelectDTO(rs));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return orders;
-    }
-    // 월별 주문 내역 목록 조회
-
-    public ArrayList<OrdersSelectDTO> selectOrderListByMonth(Connection conn, int year, int month, int pageSize, int offset) {
-        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
-
-        String sql = """
-                SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL 
-                FROM ORDERS 
-                JOIN (USERS) USING (USERS_NO)
-                WHERE YEAR(ORDERS_DATE) = ?
-                AND MONTH(ORDERS_DATE) = ?
-                ORDER BY ORDERS_DATE
-                LIMIT ? OFFSET ?
-                 """;
-
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, year);
-            ps.setInt(2, month);
+            ps.setString(1, start);
+            ps.setString(2, end);
             ps.setInt(3, pageSize);
             ps.setInt(4, offset);
 
-            try (ResultSet rs = ps.executeQuery()){
+            try (ResultSet rs = ps.executeQuery()) {
+
                 while (rs.next()) {
                     orders.add(mapToOrdersSelectDTO(rs));
                 }
             }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
 
-        return orders;
-    }
-
-    // 일자별 주문 내역 목록 조회
-
-    public ArrayList<OrdersSelectDTO> selectOrderListByDay(Connection conn, int year, int month, int day, int pageSize, int offset) {
-        ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
-
-        String sql = """
-                SELECT ORDERS_NO, ORDERS_DATE, USERS_NAME, ORDERS_TOTAL 
-                FROM ORDERS 
-                JOIN (USERS) USING (USERS_NO)
-                WHERE YEAR(ORDERS_DATE) = ?
-                AND MONTH(ORDERS_DATE) = ?
-                AND DAY(ORDERS_DATE) = ?
-                ORDER BY ORDERS_DATE
-                LIMIT ? OFFSET ?
-                 """;
-
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, year);
-            ps.setInt(2, month);
-            ps.setInt(3, day);
-            ps.setInt(4, pageSize);
-            ps.setInt(5, offset);
-
-            try(ResultSet rs = ps.executeQuery()){
-                while (rs.next()) {
-                        orders.add(mapToOrdersSelectDTO(rs));
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return orders;
-    }
-
-    public int selectOrdersListRownumByDay(Connection conn, int year, int month, int day) {
-        int res = 0;
-
-        String sql = """
-                SELECT COUNT(ORDERS_NO) 
-                FROM ORDERS
-                WHERE YEAR(ORDERS_DATE) = ?
-                    AND MONTH(ORDERS_DATE) = ?
-                    AND DAY(ORDERS_DATE) = ?
-                """;
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, year);
-            ps.setInt(2, month);
-            ps.setInt(3, day);
-
-            try(ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    res = rs.getInt(1);
-                }
-            }
-
+        } catch (IllegalArgumentException ex){
+            throw new IllegalArgumentException("유효하지 않은 날짜 형식입니다. (형식: yyyy-MM-dd)");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return orders;
 
-        return res;
     }
 
-    public int selectOrdersListRownumByMonth(Connection conn, int year, int month) {
+    public int selectOrdersListRownumByPeriod(Connection conn, String start, String end) {
         int res = 0;
 
         String sql = """
                 SELECT COUNT(ORDERS_NO) 
                 FROM ORDERS
-                WHERE YEAR(ORDERS_DATE) = ?
-                    AND MONTH(ORDERS_DATE) = ?
+                WHERE ORDERS_DATE BETWEEN ? AND ?
                 """;
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, year);
-            ps.setInt(2, month);
+            ps.setString(1, start);
+            ps.setString(2, end);
 
             try(ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -442,30 +318,8 @@ public class TimOrdersDAO {
                 }
             }
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return res;
-    }
-
-    public int selectOrdersListRownumByYear(Connection conn, int year) {
-        int res = 0;
-
-        String sql = """
-                SELECT COUNT(ORDERS_NO) 
-                FROM ORDERS
-                WHERE YEAR(ORDERS_DATE) = ?
-                """;
-        try(PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, year);
-
-            try(ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    res = rs.getInt(1);
-                }
-            }
-
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("유효하지 않은 날짜 형식입니다. (형식: yyyy-MM-dd)");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -502,8 +356,8 @@ public class TimOrdersDAO {
                     );
                 }
             }
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -527,8 +381,8 @@ public class TimOrdersDAO {
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -550,8 +404,8 @@ public class TimOrdersDAO {
                     res = rs.getInt(1);
                 }
             }
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -581,8 +435,8 @@ public class TimOrdersDAO {
                     orders.add(mapToOrdersSelectDTO(rs));
                 }
             }
-        } catch (Exception e){
-            e.printStackTrace();
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return orders;
 
@@ -611,8 +465,8 @@ public class TimOrdersDAO {
                 }
             }
 
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return res;
 
@@ -641,8 +495,8 @@ public class TimOrdersDAO {
                 }
             }
 
-        } catch (Exception e){
-            e.printStackTrace();
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return orders;
 
@@ -663,8 +517,8 @@ public class TimOrdersDAO {
             ps.setInt(1, usersNo);
             ps.setDate(2, Date.valueOf(start));
             ps.setDate(3, Date.valueOf(end));
-        } catch (Exception e){
-            e.printStackTrace();
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return res;
 
@@ -695,8 +549,8 @@ public class TimOrdersDAO {
                     orders.add(mapToOrdersSelectDTO(rs));
                 }
             }
-        } catch (Exception e){
-            e.printStackTrace();
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return orders;
 
@@ -817,7 +671,7 @@ public class TimOrdersDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace(); // 프로덕션 환경에서는 로깅 사용
+            throw new RuntimeException(e);
         }
 
         // 최종 결과에 반영
@@ -829,7 +683,7 @@ public class TimOrdersDAO {
 
     // 쿼리문 결과를 OrdersSelectDTO 객체로 매핑해주는 메서드
 
-    private OrdersSelectDTO mapToOrdersSelectDTO(ResultSet rs) throws SQLException {
+    public OrdersSelectDTO mapToOrdersSelectDTO(ResultSet rs) throws SQLException {
         return OrdersSelectDTO.builder()
                 .orderNo(rs.getInt("orders_no"))
                 .orderDate(rs.getString("orders_date"))
@@ -858,8 +712,8 @@ public class TimOrdersDAO {
 
             res = ps.executeUpdate();
 
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return res;
@@ -868,16 +722,29 @@ public class TimOrdersDAO {
 
     // =================================== 1. 품목 조회 ===================================
 
-    public ArrayList<StockDTO> selectEtcListAll(Connection conn, int type) {
+    public ArrayList<ProductsDTO> selectEtcListAll(Connection conn, int type, boolean isOrder) {
 
-        ArrayList<StockDTO> stocks = new ArrayList<>();
+        ArrayList<ProductsDTO> stocks = new ArrayList<>();
 
-        String sql = """
-                SELECT st_no, st_name, st_price
-                FROM stocks
+        String sql = null;
+
+        if (isOrder) {
+            sql = """
+                SELECT st_no, st_name, st_price, st_state
+                FROM stock
+                WHERE st_owner = 1
+                AND st_category = ?
+                AND st_state = 1
+                """;
+        } else {
+            sql = """
+                SELECT st_no, st_name, st_price, st_state
+                FROM stock
                 WHERE st_owner = 1
                 AND st_category = ?
                 """;
+        }
+
 
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -885,16 +752,17 @@ public class TimOrdersDAO {
 
             try(ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    stocks.add(StockDTO.builder()
-                            .stNo(rs.getInt("st_no"))
-                            .stName(rs.getString("st_name"))
+                    stocks.add(ProductsDTO.builder()
+                            .pno(rs.getInt("st_no"))
+                            .pname(rs.getString("st_name"))
                             .price(rs.getInt("st_price"))
+                            .isActive(rs.getInt("st_state") == 1)
                             .build());
                 }
             }
 
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         return stocks;
@@ -903,7 +771,7 @@ public class TimOrdersDAO {
     public ArrayList<PrdCgDTO> selectPrdCgListAll(Connection conn) {
         ArrayList<PrdCgDTO> selectProducts = new ArrayList<>();
 
-        String sql = "SELECT prdcg_no, prdcg_name FROM products WHERE prdcg_state = 1";
+        String sql = "SELECT prdcg_no, prdcg_name FROM prdcg WHERE prdcg_state = 1";
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -920,5 +788,160 @@ public class TimOrdersDAO {
             throw new RuntimeException(e);
         }
         return selectProducts;
+    }
+
+    public int insertOrders(Connection conn, int totalPrdQuantity, int totalPrice, int usersNo) {
+
+        int generatedKey = 0; // 생성된 orders의 기본키
+
+        String sql = """
+                INSERT INTO orders
+                (orders_quantity, orders_total, users_no)
+                VALUES
+                (?, ?, ?)
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) { // 기본키 가져오기 위한 목적
+            ps.setInt(1, totalPrdQuantity);
+            ps.setInt(2, totalPrice);
+            ps.setInt(3, usersNo);
+
+            ps.executeUpdate();
+
+            try(ResultSet rs = ps.getGeneratedKeys() ) { // 기본키 값 획득
+                if(rs.next()) {
+                    generatedKey = rs.getInt(1);
+                }
+            }
+
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return generatedKey;
+    }
+
+    public int insertOrdersPrd(Connection conn, int ordersKey, int quantity, int pno) {
+        int generatedKey = 0; // 생성된 orders의 기본키
+
+        String sql = """
+                INSERT INTO orders_prd
+                (opd_quantity, orders_no, p_no)
+                VALUES
+                (?, ?, ?)
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) { // 기본키 가져오기 위한 목적
+            ps.setInt(1, quantity);
+            ps.setInt(2, ordersKey);
+            ps.setInt(3, pno);
+
+            ps.executeUpdate();
+
+            try(ResultSet rs = ps.getGeneratedKeys() ) { // 기본키 값 획득
+                if (rs.next()) {
+                    generatedKey = rs.getInt(1);
+                }
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return generatedKey;
+    }
+
+    public int insertOrdersOpt(Connection conn, int ordPrdKey, int optNo, int price, int quantity, String optName) {
+
+        int res = 0;
+
+        String sql = null;
+
+        if (quantity == 0){
+            sql = """
+                INSERT INTO orders_opt
+                (ord_prd_no, opt_no, oropt_price, oropt_name)
+                VALUES
+                (?, ?, ?, ?)
+                """;
+        } else {
+            sql = """
+                INSERT INTO orders_opt
+                (ord_prd_no, opt_no, oropt_price, oropt_name, oropt_quantity)
+                VALUES
+                (?, ?, ?, ?, ?)
+                """;
+        }
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, ordPrdKey);
+            ps.setInt(2, optNo);
+            ps.setInt(3, price);
+            ps.setString(4, optName);
+
+            if (quantity != 0){
+                ps.setInt(5, quantity);
+            }
+
+
+            res = ps.executeUpdate();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    public int insertOrdersStock(Connection conn, int ordersKey, int pno, int quantity) {
+
+        int res = 0;
+
+        String sql = """
+                
+                INSERT INTO orders_stock
+                (orders_no, st_no, ost_quantity)
+                VALUES
+                (?, ?, ?)
+                
+                """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, ordersKey);
+            ps.setInt(2, pno);
+            ps.setInt(3, quantity);
+
+            res = ps.executeUpdate();
+
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return res;
+    }
+
+    public int updateStockForOrders(Connection conn, int stockNo, int stockConsumption) {
+
+        int res = 0;
+
+        String sql = """
+                UPDATE stock
+                SET st_quantity = st_quantity - ?
+                WHERE st_no = ?
+                    """;
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, stockConsumption);
+            ps.setInt(2, stockNo);
+
+            res = ps.executeUpdate();
+
+        }  catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return res;
+
     }
 }
