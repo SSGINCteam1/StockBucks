@@ -33,13 +33,15 @@ public class TimOrdersServiceImpl implements TimOrdersService {
 
 
     @Override
-    public ArrayList<ProductsDTO> selectEtcListAll(int purpose, int type) {
+    public ArrayList<ProductsDTO> selectEtcListAll(int purpose, int type, int currentPage, int pageSize) {
         ArrayList<ProductsDTO> stocks = null;
 
         boolean isOrder = (purpose == 2);
 
+        int offset = (currentPage - 1) * pageSize;
+
         try(Connection conn = dataSource.getConnection()){
-            stocks = timOrdersDAO.selectEtcListAll(conn, type, isOrder);
+            stocks = timOrdersDAO.selectEtcListAll(conn, type, isOrder, pageSize, offset);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -48,12 +50,14 @@ public class TimOrdersServiceImpl implements TimOrdersService {
     }
 
     @Override
-    public ArrayList<PrdCgDTO> selectPrdCgListAll() {
+    public ArrayList<PrdCgDTO> selectPrdCgListAll(int currentPage, int pageSize) {
 
         ArrayList<PrdCgDTO> prdCgs = null;
 
+        int offset = (currentPage - 1) * pageSize;
+
         try(Connection conn = dataSource.getConnection()) {
-            prdCgs = timOrdersDAO.selectPrdCgListAll(conn);
+            prdCgs = timOrdersDAO.selectPrdCgListAll(conn, pageSize, offset);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -187,14 +191,58 @@ public class TimOrdersServiceImpl implements TimOrdersService {
     }
 
     @Override
-    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(int prdcgNo, int purpose) {
+    public int selectProductsListRownumByPrdcgNo(int prdcgNo, int purpose) {
+
+        int res = 0;
+
+        boolean isOrder = (purpose == 2);
+
+        try(Connection conn = dataSource.getConnection()){
+            res = timOrdersDAO.selectProductsListRownumByPrdcgNo(conn, prdcgNo, isOrder);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+
+    @Override
+    public int selectEtcListRownumAll(int type, boolean isOrder) {
+
+        int res = 0;
+
+        try(Connection conn = dataSource.getConnection()){
+            res = timOrdersDAO.selectEtcListRownumAll(conn, type, isOrder);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    @Override
+    public int selectPrdCgListRownumAll() {
+        int res = 0;
+
+        try(Connection conn = dataSource.getConnection()){
+            res = timOrdersDAO.selectPrdCgListRownumAll(conn);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return res;
+    }
+
+    @Override
+    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(int prdcgNo, int purpose, int currentPage, int pageSize) {
 
         boolean isOrder = (purpose == 2);
 
         ArrayList<ProductsDTO> prds = null;
 
+        int offset = (currentPage - 1) * pageSize;
+
         try(Connection conn = dataSource.getConnection()) {
-            prds = timOrdersDAO.selectProductsListByPrdcgNo(conn, prdcgNo, isOrder);
+            prds = timOrdersDAO.selectProductsListByPrdcgNo(conn, prdcgNo, isOrder, pageSize, offset);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -274,7 +322,8 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         return selectPrdOpt;
 
     }
-    
+
+
 
     // =================================== 3. 주문 취소 ===================================
 

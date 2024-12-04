@@ -147,7 +147,14 @@ public class OrdersUI {
      * @param purpose   사용 목적 (1: 품목 조회, 2: 품목 주문, 3: 품목 판매 중지)
      */
     private void selectBeverageCategory(int purpose) {
-        List<PrdCgDTO> prdCgs = timOrdersService.selectPrdCgListAll();
+
+        int currpage = 1;
+
+        int pageSize = 9;
+
+        int totalSize = timOrdersService.selectPrdCgListRownumAll();
+
+        List<PrdCgDTO> prdCgs = timOrdersService.selectPrdCgListAll(currpage, pageSize);
 
         String[] menus = {"[음료 조회]", "[음료 주문]", "[음료 판매 중지]"};
 
@@ -207,15 +214,15 @@ public class OrdersUI {
     }
 
     private void selectBeverageMenu(int purpose, String prdcgName, int prdcgNo) {
-        ArrayList<ProductsDTO> products = timOrdersService.selectProductsListByPrdcgNo(prdcgNo, purpose);
-
         String[] menus = { "[" + prdcgName + " 조회]", "[" + prdcgName + " 주문]", "[" + prdcgName + " 판매 일시 중지]"};
 
-        int currentPage = 1;
-
-        int totalPages = products.size();
+        int currPage = 1;
+        int pageSize = 9;
 
         while (true) {
+            ArrayList<ProductsDTO> products = timOrdersService.selectProductsListByPrdcgNo(prdcgNo, purpose, currPage, pageSize);
+            int totalPages = timOrdersService.selectProductsListRownumByPrdcgNo(prdcgNo, purpose);
+
             System.out.println("==================================================================");
             CommonUI.printCentered(menus[purpose - 1]);
             System.out.println("==================================================================\n");
@@ -225,12 +232,9 @@ public class OrdersUI {
                 return;
             }
 
-            int preMenu = products.size() + 1;
-            int exit = products.size() + 2;
-
             int idx = 0;
 
-            System.out.printf("현재 페이지: %d / %d\n", currentPage, totalPages);
+            System.out.printf("현재 페이지: %d / %d\n", currPage, totalPages);
             System.out.println("------------------------------------------------------------------");
             System.out.printf(
                     "%-10s %-30s %-10s %-10s\n",
@@ -247,30 +251,49 @@ public class OrdersUI {
             }
             System.out.println("------------------------------------------------------------------");
 
+            CommonUI.displayPageBar(currPage, totalPages);
+
             int choice = selectPageMenu();
 
-            if (purpose == 2) { // 품목 주문
-                if (choice >= 1 && choice < preMenu) {
-                    selectBeverageOption(products.get(choice - 1));
+            switch (choice) {
+                case 10: // 다음 페이지
+                    if (currPage < totalPages) currPage++;
+                    break;
+                case 11: // 이전 페이지
+                    if (currPage > 1) currPage--;
+                    break;
+                case 12: // 페이지 직접 입력
+                    System.out.print("이동할 페이지 번호를 입력하세요: ");
+                    int newPage = sc.nextInt();
+                    if (newPage > 0 && newPage <= totalPages) {
+                        currPage = newPage;
+                    } else {
+                        System.out.println("유효하지 않은 페이지 번호입니다.");
+                    }
+                    break;
+                case 13: // 상위 메뉴
+                    CommonUI.displayGoBackMessage();
                     return;
-                }
-            } else if (purpose == 3){ // 판매 중지
-                if (choice >= 1 && choice < preMenu) {
-                    this.displayPauseSale(products.get(choice - 1));
-                    return;
-                }
+                case 14: // 종료
+                    CommonUI.displayExitMessage();
+                    System.exit(0);
+                default:
+                    if (purpose == 2) { // 품목 주문
+                        if (choice >= 1 && choice <= 9) {
+                            selectBeverageOption(products.get(choice - 1));
+                            return;
+                        }
+                    } else if (purpose == 3){ // 판매 중지
+                        if (choice >= 1 && choice <= 9) {
+                            this.displayPauseSale(products.get(choice - 1));
+                            currPage = 1;
+                            break;
+                        }
+                    } else {
+                        CommonUI.displayWrongSelectMessage();
+                    }
             }
 
-            if (choice == preMenu) {
-                return;
-            } else if (choice == exit) {
-                CommonUI.displayExitMessage();
-                System.exit(0);
-            } else {
-                CommonUI.displayWrongSelectMessage();
-            }
-
-            CommonUI.displayPageBar(currentPage, totalPages);
 
             System.out.println("\n==================================================================\n");
         }
@@ -286,7 +309,13 @@ public class OrdersUI {
 
         int type1 = isFood ? 0 : 1;
 
-        ArrayList<ProductsDTO> products = timOrdersService.selectEtcListAll(purpose, type1);
+        int currentPage = 1;
+
+        int pageSize = 9;
+
+        int totalSize = timOrdersService.selectEtcListRownumAll(type1, false);
+
+        ArrayList<ProductsDTO> products = timOrdersService.selectEtcListAll(purpose, type1, currentPage, pageSize);
 
         String type = isFood ? "푸드" : "MD";
 
@@ -345,7 +374,14 @@ public class OrdersUI {
 
     private void selectBottleMenu(int purpose, String prdcgName) {
 
-        ArrayList<ProductsDTO> products = timOrdersService.selectEtcListAll(purpose, 4);
+        int currPage = 1;
+
+        int pageSize = 9;
+
+        int totalSize = timOrdersService.selectEtcListRownumAll(4, false);
+
+
+        ArrayList<ProductsDTO> products = timOrdersService.selectEtcListAll(purpose, 4, currPage, pageSize);
 
         String[] menus = {"조회]\n", "주문]\n", "판매 일시 중지]\n"};
 

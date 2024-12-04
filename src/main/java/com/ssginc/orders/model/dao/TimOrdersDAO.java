@@ -13,42 +13,8 @@ import java.util.List;
 @Slf4j
 public class TimOrdersDAO {
 
-    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(Connection conn, int prdcgNo, boolean isOrder) {
-        ArrayList<ProductsDTO> selectProducts = new ArrayList<>();
-
-        String sql = null;
-
-        if (!isOrder) {
-            sql ="SELECT p_no, p_name, p_price, p_state FROM products where prdcg_no = ?";
-        } else {
-            sql = "SELECT p_no, p_name, p_price, p_state FROM products where prdcg_no = ? and p_state = 1";
-        }
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, prdcgNo);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    selectProducts.add(
-                            ProductsDTO.builder()
-                                    .pno(rs.getInt("p_no"))
-                                    .pname(rs.getString("p_name"))
-                                    .price(rs.getInt("p_price"))
-                                    .isActive(rs.getInt("p_state") == 1)
-                                    .build()
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return selectProducts;
-    }
-
-
-
     // =================================== 3. 주문 취소 ===================================
+
     public int deleteOrdersForCancelOrder(Connection conn, int orderNo) {
         int res = 0;
         String sql = """
@@ -207,8 +173,9 @@ public class TimOrdersDAO {
 
     }
 
-    // =================================== 4. 주문 내역 조회 ===================================
 
+
+    // =================================== 4. 주문 내역 조회 ===================================
     // ---------------------- 4.1. 전체 주문 내역 조회 ----------------------
     /**
      * 전체 주문 내역 조회
@@ -262,8 +229,8 @@ public class TimOrdersDAO {
     }
 
     // ---------------------- 4.2. 기간별 주문 내역 조회 ----------------------
-    // 년도별 주문 내역 목록 조회
 
+    // 년도별 주문 내역 목록 조회
 
     public ArrayList<OrdersSelectDTO> selectOrderListByPeriod(Connection conn, String start, String end, int pageSize, int offset) {
 
@@ -328,8 +295,8 @@ public class TimOrdersDAO {
     }
 
 
-    // ---------------------- 4.3. 유저별 주문 내역 조회 ----------------------
 
+    // ---------------------- 4.3. 유저별 주문 내역 조회 ----------------------
     public ArrayList<UsersDTO> selectUsersListByUsersName(Connection conn, String username, int pageSize, int offset) {
         ArrayList<UsersDTO> res = new ArrayList<>();
 
@@ -443,8 +410,8 @@ public class TimOrdersDAO {
     }
 
 
-    // ---------------------- 4.4. 사용자 정의 주문 내역 조회 ----------------------
 
+    // ---------------------- 4.4. 사용자 정의 주문 내역 조회 ----------------------
     public int selectOrdersListRownumByCustom(Connection conn, String startDate, String endDate) {
 
         int res = 0;
@@ -557,8 +524,8 @@ public class TimOrdersDAO {
     }
 
     // ---------------------- 4.5. 주문 내역 조회 유틸 메서드 ----------------------
-    // 주문 세부 객체 select
 
+    // 주문 세부 객체 select
     public OrderDetailsDTO selectOrdersDetails(Connection conn, int orderNo) {
         List<ProductsDTO> products = new ArrayList<>(); // 제품 리스트
 
@@ -681,8 +648,8 @@ public class TimOrdersDAO {
                 .build();
     }
 
-    // 쿼리문 결과를 OrdersSelectDTO 객체로 매핑해주는 메서드
 
+    // 쿼리문 결과를 OrdersSelectDTO 객체로 매핑해주는 메서드
     public OrdersSelectDTO mapToOrdersSelectDTO(ResultSet rs) throws SQLException {
         return OrdersSelectDTO.builder()
                 .orderNo(rs.getInt("orders_no"))
@@ -694,8 +661,8 @@ public class TimOrdersDAO {
 
 
 
-    // =================================== 5. 품목 판매 중지 ===================================
 
+    // =================================== 5. 품목 판매 중지 ===================================
     public int updateProductsIsActive(Connection conn, int state, int pno) {
 
         int res = 0;
@@ -720,9 +687,9 @@ public class TimOrdersDAO {
     }
 
 
-    // =================================== 1. 품목 조회 ===================================
 
-    public ArrayList<ProductsDTO> selectEtcListAll(Connection conn, int type, boolean isOrder) {
+    // =================================== 1. 품목 조회 ===================================
+    public ArrayList<ProductsDTO> selectEtcListAll(Connection conn, int type, boolean isOrder, int pageSize, int offset) {
 
         ArrayList<ProductsDTO> stocks = new ArrayList<>();
 
@@ -745,10 +712,14 @@ public class TimOrdersDAO {
                 """;
         }
 
+        sql += " ORDER BY st_no LIMIT ? OFFSET ?";
+
 
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, type);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
 
             try(ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -768,21 +739,64 @@ public class TimOrdersDAO {
         return stocks;
     }
 
-    public ArrayList<PrdCgDTO> selectPrdCgListAll(Connection conn) {
+    public int selectEtcListRownumAll(Connection conn ,int type, boolean isOrder) {
+
+        int res = 0;
+
+        String sql = null;
+
+        if (isOrder) {
+            sql = """
+                SELECT COUNT(st_no)
+                FROM stock
+                WHERE st_owner = 1
+                AND st_category = ?
+                AND st_state = 1
+                """;
+        } else {
+            sql = """
+                SELECT COUNT(st_no)
+                FROM stock
+                WHERE st_owner = 1
+                AND st_category = ?
+                """;
+        }
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, type);
+            try(ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
+        return res;
+    }
+
+
+    public ArrayList<PrdCgDTO> selectPrdCgListAll(Connection conn, int pageSize, int offset) {
         ArrayList<PrdCgDTO> selectProducts = new ArrayList<>();
 
-        String sql = "SELECT prdcg_no, prdcg_name FROM prdcg WHERE prdcg_state = 1";
+        String sql = "SELECT prdcg_no, prdcg_name FROM prdcg WHERE prdcg_state = 1 ORDER BY prdcg_no LIMIT ? OFFSET ?";
 
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)){
 
-                selectProducts.add(
-                        PrdCgDTO.builder()
-                                .prdCgNo(rs.getInt("prdcg_no"))
-                                .prdCgName(rs.getString("prdcg_name"))
-                        .build()
-                );
+            ps.setInt(1, pageSize);
+            ps.setInt(2, offset);
+
+            try(ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    selectProducts.add(
+                            PrdCgDTO.builder()
+                                    .prdCgNo(rs.getInt("prdcg_no"))
+                                    .prdCgName(rs.getString("prdcg_name"))
+                                    .build()
+                    );
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -790,6 +804,94 @@ public class TimOrdersDAO {
         return selectProducts;
     }
 
+    public int selectPrdCgListRownumAll(Connection conn) {
+
+        int res = 0;
+
+        String sql = "SELECT COUNT(prdcg_no) FROM prdcg WHERE prdcg_state = 1";
+
+        try(PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()){
+            if (rs.next()) {
+                res = rs.getInt(1);
+            }
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
+        return res;
+    }
+
+
+    public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(Connection conn, int prdcgNo, boolean isOrder, int pageSize, int offset) {
+        ArrayList<ProductsDTO> selectProducts = new ArrayList<>();
+
+        String sql = null;
+
+        if (!isOrder) {
+            sql ="SELECT p_no, p_name, p_price, p_state FROM products where prdcg_no = ?";
+        } else {
+            sql = "SELECT p_no, p_name, p_price, p_state FROM products where prdcg_no = ? and p_state = 1";
+        }
+
+        sql += " ORDER BY p_no LIMIT ? OFFSET ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, prdcgNo);
+            ps.setInt(2, pageSize);
+            ps.setInt(3, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    selectProducts.add(
+                            ProductsDTO.builder()
+                                    .pno(rs.getInt("p_no"))
+                                    .pname(rs.getString("p_name"))
+                                    .price(rs.getInt("p_price"))
+                                    .isActive(rs.getInt("p_state") == 1)
+                                    .build()
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return selectProducts;
+    }
+
+    public int selectProductsListRownumByPrdcgNo(Connection conn, int prdcgNo, boolean isOrder) {
+
+        int res = 0;
+
+        String sql = null;
+
+        if (!isOrder) {
+            sql ="SELECT COUNT(p_no) FROM products where prdcg_no = ?";
+        } else {
+            sql = "SELECT COUNT(p_no) FROM products where prdcg_no = ? and p_state = 1";
+        }
+
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, prdcgNo);
+
+            ps.executeQuery();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    res = rs.getInt(1);
+                }
+            }
+
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
+        return res;
+    }
+
+    // =================================== 2. 품목 주문 ===================================
+    
     public int insertOrders(Connection conn, int totalPrdQuantity, int totalPrice, int usersNo) {
 
         int generatedKey = 0; // 생성된 orders의 기본키

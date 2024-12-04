@@ -4,6 +4,7 @@ import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.orders.model.dto.*;
 
 import java.lang.reflect.Array;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,15 +56,22 @@ public interface TimOrdersService {
 
 
     // =================================== 1. 품목 조회 ===================================
-    ArrayList<ProductsDTO> selectEtcListAll(int purpose, int type);
+    ArrayList<ProductsDTO> selectEtcListAll(int purpose, int type, int currentPage, int pageSize);
 
-    ArrayList<ProductsDTO> selectProductsListByPrdcgNo(int prdcgNo, int purpose);
+    ArrayList<ProductsDTO> selectProductsListByPrdcgNo(int prdcgNo, int purpose, int currentPage, int pageSize);
 
     ArrayList<PrdOptDTO> selectPrdOpt(int pNo);
 
-    ArrayList<PrdCgDTO> selectPrdCgListAll();
+    ArrayList<PrdCgDTO> selectPrdCgListAll(int currentPage, int pageSize);
 
     // =================================== 2. 품목 주문 ===================================
 
     int insertOrders(List<ProductsDTO> products, int usersNo);
+
+    int selectProductsListRownumByPrdcgNo(int prdcgNo, int purpose);
+
+    int selectEtcListRownumAll(int type, boolean isOrder);
+
+    int selectPrdCgListRownumAll();
+
 }
