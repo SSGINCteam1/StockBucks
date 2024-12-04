@@ -4,6 +4,7 @@ import com.ssginc.manageproduct.vo.ManageProductVO;
 import com.ssginc.util.HikariCPDataSource;
 
 import java.sql.*;
+import java.util.ArrayList;
 
 public class ManageProductDAO {
     private HikariCPDataSource hikariCPDataSource;
@@ -15,8 +16,9 @@ public class ManageProductDAO {
     }
 
 
-    public void selectAll() throws Exception {
+    public ArrayList<ManageProductVO> selectAll() throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
+        ArrayList<ManageProductVO> list = new ArrayList<>();
 
         String sql = "SELECT * FROM STOCK";
         try {
@@ -35,10 +37,21 @@ public class ManageProductDAO {
                 String st_unit = rs.getString("st_unit");
                 int st_state = rs.getInt("st_state");
 
-                System.out.println("NO: " + st_no + ", Name: " + st_name + ", Price: " + st_price +
-                        ", Quantity: " + st_quantity + ", Owner: " + st_owner +
-                        ", Category: " + st_category + ", Unit: " + st_unit +
-                        ", State: " + st_state);
+//               // System.out.println("NO: " + st_no + ", Name: " + st_name + ", Price: " + st_price +
+//                        ", Quantity: " + st_quantity + ", Owner: " + st_owner +
+//                        ", Category: " + st_category + ", Unit: " + st_unit +
+//                        ", State: " + st_state);
+//
+                ManageProductVO vo = new ManageProductVO();
+                vo.setSt_no(st_no);
+                vo.setSt_name(st_name);
+                vo.setSt_price(st_price);
+                vo.setSt_quantity(st_quantity);
+                vo.setSt_owner(st_owner);
+                vo.setSt_category(st_category);
+                vo.setSt_unit(st_unit);
+                vo.setSt_state(st_state);
+                list.add(vo);
 
             }
         } catch (SQLException e) {
@@ -47,13 +60,14 @@ public class ManageProductDAO {
 
 
         con.close();
-
+        return list;
 
     }
 
-    public void selectCategory(int st_category) throws Exception {
+    public ArrayList<ManageProductVO> selectCategory(int st_category) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
-
+        //ArrayList생성
+        ArrayList<ManageProductVO> list = new ArrayList<>();
         String sql = "select * from stock where st_category = ?";
 
         PreparedStatement ps = con.prepareStatement(sql);
@@ -68,30 +82,32 @@ public class ManageProductDAO {
             // 결과에서 필요한 컬럼을 가져옵니다.
             int st_no = rs.getInt("st_no"); //품목번호
             String st_name = rs.getString("st_name"); //품목명
-            int st_category2 = rs.getInt("st_category");
+            int st_category2 = rs.getInt("st_category");//카테고리
             int st_price = rs.getInt("st_price"); //가격
             String st_unit = rs.getString("st_unit"); //단위
             int st_state = rs.getInt("st_state"); //발주가능여부
-
-  //품목번호                 품목명       	카테고리       	    가격            단위		 발주가능여부
+            //vo만들어 위의 값들 다 넣어주고
+            //list에 vo추가
+            ManageProductVO vo = new ManageProductVO();
+            vo.setSt_no(st_no);
+            vo.setSt_name(st_name);
+            vo.setSt_price(st_price);
+            vo.setSt_category(st_category);
+            vo.setSt_unit(st_unit);
+            vo.setSt_state(st_state);
+            list.add(vo);
+            //품목번호                 품목명       	카테고리       	    가격            단위		 발주가능여부
         }
-        ps.close();
+       ps.close();
         con.close();
+        return list;
+}
 
-    }
-
-
-
-
-
-
-
-
-
-
-    public void selectKeyword(String st_name) throws Exception {
+    public ArrayList<ManageProductVO> selectKeyword(String st_name) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
 
+        //ArrayList생성
+        ArrayList<ManageProductVO> list = new ArrayList<>();
         String sql = "SELECT * FROM stock WHERE st_name LIKE ?";
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -109,30 +125,96 @@ public class ManageProductDAO {
             int st_category = rs.getInt("st_category");
             String st_unit = rs.getString("st_unit");
             int st_state = rs.getInt("st_state");
-            System.out.println("NO: " + st_no + ", Name: " + st_name2 + ", Price: " + st_price +
-                    ", Quantity: " + st_quantity + ", Owner: " + st_owner +
-                    ", Category: " + st_category + ", Unit: " + st_unit +
-                    ", State: " + st_state);
+//            System.out.println("NO: " + st_no + ", Name: " + st_name2 + ", Price: " + st_price +
+//                    ", Quantity: " + st_quantity + ", Owner: " + st_owner +
+//                    ", Category: " + st_category + ", Unit: " + st_unit +
+//                    ", State: " + st_state);
+            ManageProductVO vo = new ManageProductVO();
+            vo.setSt_no(st_no);
+            vo.setSt_name(st_name);
+            vo.setSt_price(st_price);
+            vo.setSt_quantity(st_quantity);
+            vo.setSt_owner(st_owner);
+            vo.setSt_category(st_category);
+            vo.setSt_unit(st_unit);
+            vo.setSt_state(st_state);
+            list.add(vo);
         }
+
+
+
+
+        ps.close();
+        con.close();
+        return list;
     }
 
 
-    public void update(String st_name, int st_no) {
+    public boolean update(String st_name, int st_no) throws Exception {
+        Connection con = hikariCPDataSource.getDataSource().getConnection();
         String sql = "update stock set st_name = ? where st_no = ?";
 
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setString(1, st_name); //
+        ps.setInt(2, st_no);
+        System.out.println("3. sql준비 --> sql객체 성공!");
+
+        int result = ps.executeUpdate();
+        System.out.println("4. sql전송 성공!");
+        System.out.println("실행된 row수 --> " + result + "개");
+        System.out.println("==============> " + result); //0, 1~
+        ps.close();
+        con.close(); //관련 자원들 메모리에서 해제!
+
+
+        return result > 0;
     }
 
 
-    public void delete(int st_no) {
+    public boolean delete(int st_no) throws Exception {
+        Connection con = hikariCPDataSource.getDataSource().getConnection();
         String sql = "delete from stock where st_no = ?";
+
+         PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, st_no);
+        System.out.println("3. sql준비 --> sql객체 성공!");
+
+        int result = ps.executeUpdate();
+        System.out.println("4. sql전송 성공!");
+        System.out.println("실행된 row수 --> " + result + "개");
+
+        ps.close();
+        con.close();
+
+        return result > 0;
     }
 
 
 
-    public void insert(ManageProductVO bag) {
-        String sql = "insert into stock (st_name, st_price, st_quantity, st_owner, st_category, st_unit, st_state) valuse()";
+    public int insert(ManageProductVO bag) throws Exception {
+        Connection con = hikariCPDataSource.getDataSource().getConnection();
+        String sql = "insert into stock (st_name, st_price, st_quantity, st_owner, st_category, st_unit, st_state) values (?, ?, ?, ?, ?, ?, ?)";
+
+        PreparedStatement ps = con.prepareStatement(sql);
 
 
+        ps.setString(1, bag.getSt_name());
+        ps.setInt(2, bag.getSt_price());
+        ps.setInt(3, bag.getSt_quantity());
+        ps.setInt(4, bag.getSt_owner());
+        ps.setInt(5, bag.getSt_category());
+        ps.setString(6, bag.getSt_unit());
+        ps.setInt(7, bag.getSt_state());
+
+        int result = ps.executeUpdate();
+
+
+
+        ps.close();
+        con.close();
+
+        return result;
     }
+
 
 }
