@@ -1,5 +1,6 @@
 package com.ssginc.placeonorders.model.dao;
 
+import com.ssginc.placeonorders.model.dto.HoonInsertPlaceOrdersDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectBasketListDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectStockListDTO;
 import com.ssginc.util.HikariCPDataSource;
@@ -8,6 +9,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -245,7 +247,7 @@ public class HoonPlaceOnOrdersDAO {
 
     // -------------------------- 2.1.2 장바구니 품목 삭제 --------------------------
     // 장바구니 품목 삭제
-    public int deleteBasketStock(int usersNo, int selectedBaksetStockNo) {
+    public int deleteBasketStockByStockNo(int usersNo, int selectedBaksetStockNo) {
         int res = 0;
         String sql = """
                 DELETE FROM place_orders_basket
@@ -269,24 +271,33 @@ public class HoonPlaceOnOrdersDAO {
 
     // -------------------------- 2.2 장바구니 품목 발주 신청 --------------------------
     // 발주 테이블에 추가
-    public int insertPlaceOrders(Connection con, int totalPrice, int usersNo) {
-        int res = 0;
+    public HoonInsertPlaceOrdersDTO insertPlaceOrders(Connection con, int totalPrice, int usersNo) {
+        int poNo = 0;
+        HoonInsertPlaceOrdersDTO dto = null;
         String sql = """
                 INSERT INTO place_orders (po_total, users_no) VALUES (?, ?)
                 """;
 
         // DB에 SQL문 전송
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             // 전달받은 발주총액과 유저번호를 SQL문의 파라미터로 setting
             ps.setInt(1, totalPrice);
             ps.setInt(2, usersNo);
 
-            res = ps.executeUpdate();
+            int res = ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                poNo = rs.getInt(1);
+            }
+
+            dto = new HoonInsertPlaceOrdersDTO();
+            dto.setResult(res);
+            dto.setPoNo(poNo);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
-        return res;
+        return dto;
     }
 
     // 발주_재고물품 테이블에 추가
@@ -312,7 +323,7 @@ public class HoonPlaceOnOrdersDAO {
     }
 
     // 발주 장바구니 테이블에서 삭제
-    public int deletePlaceOrdersBasket(Connection con, int usersNo) {
+    public int deletePlaceOrdersBasketByUsersNo(Connection con, int usersNo) {
         int res = 0;
         String sql = """
                 DELETE FROM place_orders_basket WHERE users_no = ?

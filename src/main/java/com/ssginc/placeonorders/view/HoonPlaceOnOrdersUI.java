@@ -3,12 +3,14 @@ package com.ssginc.placeonorders.view;
 import com.ssginc.common.view.CommonUI;
 import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.placeonorders.model.dao.HoonPlaceOnOrdersDAO;
+import com.ssginc.placeonorders.model.dto.HoonInsertPlaceOrdersDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectBasketListDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectStockListDTO;
 import com.ssginc.util.HikariCPDataSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -214,7 +216,7 @@ public class HoonPlaceOnOrdersUI {
 
             // 발주 신청
             case 2 -> {
-
+                registerPlaceOnOrders(basketList, totalPrice);
             }
         }
     }
@@ -262,7 +264,9 @@ public class HoonPlaceOnOrdersUI {
     // -------------------------- 2.1.1 장바구니 품목 수정 --------------------------
     // 장바구니 품목 수정 메서드
     private void updateSelectedBasketStock(HoonSelectBasketListDTO selectedBasketStock) {
-        try (Connection con = dataSource.getConnection()) {
+        Connection con = null;
+        try {
+            con = dataSource.getConnection();
             con.setAutoCommit(false);   // Auto Commit 비활성화
 
             System.out.println("===================================");
@@ -273,14 +277,24 @@ public class HoonPlaceOnOrdersUI {
             int inputQuantity = sc.nextInt();
 
             int result = placeOnOrdersDAO.updateBasketStock(con, this.user.getUsersNo(), selectedBasketStock.getStNo(), inputQuantity);
-            if (result != 0) {
-                con.commit();
-            } else {
-                con.rollback();
-                System.out.println("수량 변경에 실패했습니다.");
+            if (result == 0) {
+                throw new Exception("수량 변경에 실패했습니다.");
             }
+
+            con.commit();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            try {
+                con.rollback();
+                System.out.println(e.getMessage());
+            } catch (SQLException ex) {
+                System.out.println(ex.getMessage());
+            }
+        } finally {
+            try {
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -295,7 +309,7 @@ public class HoonPlaceOnOrdersUI {
         while (true) {
             String choice = sc.next();
             if (choice.equalsIgnoreCase("Y")) {
-                int result = placeOnOrdersDAO.deleteBasketStock(this.user.getUsersNo(), selectedBasketStock.getStNo());
+                int result = placeOnOrdersDAO.deleteBasketStockByStockNo(this.user.getUsersNo(), selectedBasketStock.getStNo());
 
                 if (result == 1) {
                     System.out.println("품목이 성공적으로 삭제되었습니다.");
@@ -374,8 +388,75 @@ public class HoonPlaceOnOrdersUI {
 
     // -------------------------- 2.2 장바구니 품목 발주 신청 --------------------------
     // 발주 신청
-    private void registerPlaceOnOrders() {
+    private void registerPlaceOnOrders(List<HoonSelectBasketListDTO> basketList, int totalPrice) {
+        Connection con = null;
 
+        try {
+            con = dataSource.getConnection();
+            con.setAutoCommit(false);   // Auto Commit 비활성화
+
+            System.out.println("===================================");
+            System.out.println("[발주 신청]");
+            System.out.println("발주 신청을 하시겠습니까?");
+            System.out.print("(Y/N)>> ");
+
+            while (true) {
+                String choice = sc.next();
+                if (choice.equalsIgnoreCase("Y")) {
+                    HoonInsertPlaceOrdersDTO dto = placeOnOrdersDAO.insertPlaceOrders(con, totalPrice, this.user.getUsersNo());
+
+                    // insertPlaceOrders의 결과값
+                    int insertPlaceOrdersResult = dto.getResult();
+                    // 발주 테이블 추가된 데이터 값의 poNo를 받아온다.
+                    int generatedPoNo = dto.getPoNo();
+
+                    // 발주 테이블 데이터 삽입 실패시 Exception throw
+                    if (insertPlaceOrdersResult != 1) {
+                        throw new Exception("발주 테이블 데이터 삽입에 실패했습니다.");
+                    }
+
+                    // 장바구니 목록에 있는 데이터의 개수만큼 나와야 함
+                    int insertPlaceOrdersStockResult = 0;
+                    for (HoonSelectBasketListDTO basketStock : basketList) {
+                        insertPlaceOrdersStockResult += placeOnOrdersDAO.insertPlaceOrdersStock(con, generatedPoNo, basketStock.getStNo(), basketStock.getPlaceOrdersQuantity());
+                    }
+
+                    // 발주 물품 테이블 데이터 삽입 실패시 Exception throw
+                    if (insertPlaceOrdersStockResult != basketList.size()) {
+                        throw new Exception("발주 물품 테이블 데이터 삽입에 실패했습니다.");
+                    }
+
+                    con.commit();
+
+                    int deletePlaceOrdersBasketResult = placeOnOrdersDAO.deletePlaceOrdersBasketByUsersNo(con, this.user.getUsersNo());
+                    if (deletePlaceOrdersBasketResult != basketList.size()) {
+                        throw new Exception("발주 장바구니 테이블 데이터 삭제에 실패했습니다.");
+                    }
+
+                    con.commit();
+
+                    System.out.println("발주가 성공적으로 신청되었습니다.");
+                    break;
+                } else if (choice.equalsIgnoreCase("N")) {
+                    CommonUI.displayGoBackMessage();
+                    return;
+                } else {
+                    System.out.println("잘못된 입력입니다. 다시 입력해주세요.");
+                }
+            }
+        } catch (Exception e) {
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                System.out.println(ex.getMessage());
+            }
+        } finally {
+            try {
+                con.close();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
-
+d
 }
