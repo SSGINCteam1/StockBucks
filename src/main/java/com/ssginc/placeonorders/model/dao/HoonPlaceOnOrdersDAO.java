@@ -312,5 +312,22 @@ public class HoonPlaceOnOrdersDAO {
     }
 
     // 발주 장바구니 테이블에서 삭제
+    public int deletePlaceOrdersBasket(Connection con, int usersNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM place_orders_basket WHERE users_no = ?
+                """;
 
+        // DB에 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 유저번호를 SQL문의 파라미터로 setting
+            ps.setInt(1, usersNo);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
 }
