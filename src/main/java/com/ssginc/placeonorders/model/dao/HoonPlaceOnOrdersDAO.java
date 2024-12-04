@@ -228,7 +228,7 @@ public class HoonPlaceOnOrdersDAO {
                 WHERE users_no = ? AND st_no = ?
                 """;
 
-        // DB와 connection 연결 및 SQL문 전송
+        // DB에 SQL문 전송
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             // 전달받은 유저번호, 제품번호와 수정할 수량을 SQL문의 파라미터로 setting
             ps.setInt(1, inputQuantity);
@@ -266,4 +266,32 @@ public class HoonPlaceOnOrdersDAO {
 
         return res;
     }
+
+    // -------------------------- 2.2 장바구니 품목 발주 신청 --------------------------
+    // 발주 테이블에 추가
+    public int insertPlaceOrders(Connection con, int totalPrice, int usersNo) {
+        int res = 0;
+        String sql = """
+                INSERT INTO place_orders (po_total, users_no) VALUES (?, ?)
+                """;
+
+        // DB에 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 발주총액과 유저번호를 SQL문의 파라미터로 setting
+            ps.setInt(1, totalPrice);
+            ps.setInt(2, usersNo);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
+
+    // 발주_재고물품 테이블에 추가
+
+
+    // 발주 장바구니 테이블에서 삭제
+
 }

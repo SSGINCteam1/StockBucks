@@ -185,8 +185,10 @@ public class HoonPlaceOnOrdersUI {
         }
         // 로그인한 유저가 장바구니에 담은 품목 리스트 출력
         List<HoonSelectBasketListDTO> basketList = placeOnOrdersDAO.selectBasketListByUsersNo(this.user.getUsersNo());
+        // 장바구니에 담긴 품목의 총 가격
+        int totalPrice = this.calculateTotalPrice(basketList);
         // 선택된 품목이 품목 리스트에 존재하는지 확인하기 위해 품목 리스트 번호
-        List<Integer> basketStockNoList = this.printBasketList(basketList);
+        List<Integer> basketStockNoList = this.printBasketList(basketList, totalPrice);
 
         System.out.println("===================================");
         System.out.println("1. 품목 선택\t2. 발주 신청");
@@ -314,16 +316,14 @@ public class HoonPlaceOnOrdersUI {
     }
 
     // 장바구니 리스트 출력 메서드
-    private List<Integer> printBasketList(List<HoonSelectBasketListDTO> basketList) {
+    private List<Integer> printBasketList(List<HoonSelectBasketListDTO> basketList, int totalPrice) {
         List<Integer> basketStockNo = new ArrayList<>();
 
         System.out.printf("%-10s%-20s%-10s%-10s%-10s%-20s%-10s\n",
                 "제품번호", "제품명", "단가", "발주수량", "발주가격", "제품 카테고리", "제품 단위");
         System.out.println("---------------------------------------------");
 
-        int totalPrice = 0;
         for (HoonSelectBasketListDTO basketStock : basketList) {
-            int subTotal = basketStock.getPlaceOrdersPrice();
             int stockNo = basketStock.getStNo();
 
             basketStockNo.add(stockNo);
@@ -336,8 +336,6 @@ public class HoonPlaceOnOrdersUI {
                     basketStock.getPlaceOrdersPrice(),
                     category[basketStock.getStCategory()],
                     basketStock.getStUnit());
-
-            totalPrice += subTotal;
         }
 
         System.out.println("---------------------------------------------");
@@ -362,6 +360,22 @@ public class HoonPlaceOnOrdersUI {
                 category[selectedBasketStock.getStCategory()],
                 selectedBasketStock.getStUnit());
         System.out.println("---------------------------------------------");
+    }
+
+    private int calculateTotalPrice(List<HoonSelectBasketListDTO> basketList) {
+        int totalPrice = 0;
+
+        for (HoonSelectBasketListDTO basketStock : basketList) {
+            totalPrice += basketStock.getPlaceOrdersPrice();
+        }
+
+        return totalPrice;
+    }
+
+    // -------------------------- 2.2 장바구니 품목 발주 신청 --------------------------
+    // 발주 신청
+    private void registerPlaceOnOrders() {
+
     }
 
 }
