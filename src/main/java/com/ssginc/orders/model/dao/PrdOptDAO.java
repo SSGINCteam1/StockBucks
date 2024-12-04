@@ -64,6 +64,7 @@ public class PrdOptDAO {
 
                     // PrdOptDetailDTO 생성 및 설정
                     PrdOptDetailDTO detail = new PrdOptDetailDTO();
+                    detail.setOptNo(rs.getInt("opt_no"));
                     detail.setOptionName(rs.getString("opt_name"));
                     detail.setOptionPrice(rs.getInt("opt_price"));
 

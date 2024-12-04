@@ -29,7 +29,7 @@ public class PrdCgDAO {
 
             while (rs.next()) {
                 // PrdCgDTO 객체 생성 및 값 설정
-                PrdCgDTO prdCgDTO = new PrdCgDTO();
+                PrdCgDTO prdCgDTO = PrdCgDTO.builder().build();
                 prdCgDTO.setPrdCgNo(rs.getInt("prdcg_no"));
                 prdCgDTO.setPrdCgName(rs.getString("prdcg_name"));
                 // DTO 객체를 ArrayList에 추가

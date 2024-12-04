@@ -227,9 +227,9 @@ INSERT INTO opt (opt_name, opt_price, opt_consume, category_no) VALUES
 ('벤티(591ml)', 1600, 54, 1),
 ('샷', 500, 18, 2),
 ('시럽', 0, 15, 4),
-('일반', 0, 300, 5),
-('저지방', 0, 300, 5),
-('무지방', 0, 300, 5),
+('일반우유', 0, 300, 5),
+('저지방우유', 0, 300, 5),
+('무지방우유', 0, 300, 5),
 ('두유', 0, 300, 5),
 ('오트(귀리)', 800, 300, 5),
 ('휘핑 없이', 0, 0, 3),
@@ -300,8 +300,6 @@ INSERT INTO place_orders_basket (users_no, st_no, pob_quantity) VALUES
 ########################
 ######## SELECT ########
 ########################
-        
-        
 
-				
-                    
+SELECT prdcg_no, prdcg_name FROM prdcg WHERE prdcg_state = 1;
+    
