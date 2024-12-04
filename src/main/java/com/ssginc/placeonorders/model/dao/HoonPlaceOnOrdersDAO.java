@@ -1,5 +1,6 @@
 package com.ssginc.placeonorders.model.dao;
 
+import com.ssginc.placeonorders.model.dto.HoonInsertPlaceOrdersDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectBasketListDTO;
 import com.ssginc.placeonorders.model.dto.HoonSelectStockListDTO;
 import com.ssginc.util.HikariCPDataSource;
@@ -8,6 +9,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +20,7 @@ public class HoonPlaceOnOrdersDAO {
         dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
 
+    // ========================== 1. 재고 조회 ==========================
     // 지점 재고 전체 조회
     public List<HoonSelectStockListDTO> selectAllStockList() {
         List<HoonSelectStockListDTO> stockList = null;
@@ -131,6 +134,8 @@ public class HoonPlaceOnOrdersDAO {
         return stockList;
     }
 
+    // ========================== 2. 발주 신청 ==========================
+    // -------------------------- 2.1 장바구니 품목 목록 조회
     // 장바구니에 담은 품목 조회
     public List<HoonSelectBasketListDTO> selectBasketListByUsersNo(int usersNo) {
         List<HoonSelectBasketListDTO> basketList = null;
@@ -176,4 +181,164 @@ public class HoonPlaceOnOrdersDAO {
         return basketList;
     }
 
+    // 유저 번호와 품목 번호로 장바구니에 담은 품목 조회
+    public HoonSelectBasketListDTO selectBasketStockByUsersNoAndStockNo(int usersNo, int stockNo) {
+        HoonSelectBasketListDTO dto = null;
+        String sql = """
+                SELECT pob.st_no, s.st_name, s.st_price, pob.pob_quantity, (s.st_price * pob.pob_quantity) AS pob_price, s.st_category, s.st_unit
+                FROM place_orders_basket pob
+                INNER JOIN stock s ON pob.st_no = s.st_no
+                INNER JOIN users u ON pob.users_no = u.users_no
+                WHERE u.users_no = ? AND pob.st_no = ?
+                """;
+
+        // DB와 connection 연결 및 SQL문 전송
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 usersNo와 stockNo를 SQL문의 파라미터로 setting
+            ps.setInt(1, usersNo);
+            ps.setInt(2, stockNo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // 값 전달을 위한 DTO 생성 및 SQL문을 통해 불러온 field의 값들로 DTO setting(빌더 패턴)
+                    dto = HoonSelectBasketListDTO.builder()
+                            .stNo(rs.getInt("st_no"))
+                            .stName(rs.getString("st_name"))
+                            .stPrice(rs.getInt("st_price"))
+                            .placeOrdersQuantity(rs.getInt("pob_quantity"))
+                            .placeOrdersPrice(rs.getInt("pob_price"))
+                            .stCategory(rs.getInt("st_category"))
+                            .stUnit(rs.getString("st_unit"))
+                            .build();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return dto;
+    }
+
+    // -------------------------- 2.1.1 장바구니 품목 수정 --------------------------
+    // 장바구니 품목 수정
+    public int updateBasketStock(Connection con, int usersNo, int selectedBasketStockNo, int inputQuantity) {
+        int res = 0;
+        String sql = """
+                UPDATE place_orders_basket
+                SET pob_quantity = ?
+                WHERE users_no = ? AND st_no = ?
+                """;
+
+        // DB에 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 유저번호, 제품번호와 수정할 수량을 SQL문의 파라미터로 setting
+            ps.setInt(1, inputQuantity);
+            ps.setInt(2, usersNo);
+            ps.setInt(3, selectedBasketStockNo);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
+
+    // -------------------------- 2.1.2 장바구니 품목 삭제 --------------------------
+    // 장바구니 품목 삭제
+    public int deleteBasketStockByStockNo(int usersNo, int selectedBaksetStockNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM place_orders_basket
+                WHERE users_no = ? AND st_no = ?
+                """;
+
+        // DB와 connection 연결 및 SQL문 전송
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 유저번호, 제품번호를 SQL문의 파라미터로 setting
+            ps.setInt(1, usersNo);
+            ps.setInt(2, selectedBaksetStockNo);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
+
+    // -------------------------- 2.2 장바구니 품목 발주 신청 --------------------------
+    // 발주 테이블에 추가
+    public HoonInsertPlaceOrdersDTO insertPlaceOrders(Connection con, int totalPrice, int usersNo) {
+        int poNo = 0;
+        HoonInsertPlaceOrdersDTO dto = null;
+        String sql = """
+                INSERT INTO place_orders (po_total, users_no) VALUES (?, ?)
+                """;
+
+        // DB에 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            // 전달받은 발주총액과 유저번호를 SQL문의 파라미터로 setting
+            ps.setInt(1, totalPrice);
+            ps.setInt(2, usersNo);
+
+            int res = ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                poNo = rs.getInt(1);
+            }
+
+            dto = new HoonInsertPlaceOrdersDTO();
+            dto.setResult(res);
+            dto.setPoNo(poNo);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return dto;
+    }
+
+    // 발주_재고물품 테이블에 추가
+    public int insertPlaceOrdersStock(Connection con, int poNo, int stNo, int placeOrdersQuantity) {
+        int res = 0;
+        String sql = """
+                INSERT INTO place_orders_stock (po_no, st_no, post_quantity) VALUES (?, ?, ?)
+                """;
+
+        // DB에 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 발주번호, 제품번호, 발주수량을 SQL문의 파라미터로 setting
+            ps.setInt(1, poNo);
+            ps.setInt(2, stNo);
+            ps.setInt(3, placeOrdersQuantity);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
+
+    // 발주 장바구니 테이블에서 삭제
+    public int deletePlaceOrdersBasketByUsersNo(Connection con, int usersNo) {
+        int res = 0;
+        String sql = """
+                DELETE FROM place_orders_basket WHERE users_no = ?
+                """;
+
+        // DB에 SQL문 전송
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            // 전달받은 유저번호를 SQL문의 파라미터로 setting
+            ps.setInt(1, usersNo);
+
+            res = ps.executeUpdate();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
+    }
 }
