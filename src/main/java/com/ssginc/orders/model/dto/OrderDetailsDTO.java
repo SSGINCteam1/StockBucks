@@ -1,6 +1,6 @@
 package com.ssginc.orders.model.dto;
 
-import com.ssginc.orders.model.vo.ProductionVO;
+import com.ssginc.orders.model.vo.ProductsVO;
 import lombok.Builder;
 import lombok.Data;
 

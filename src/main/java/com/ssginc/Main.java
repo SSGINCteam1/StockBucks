@@ -9,17 +9,17 @@ import org.slf4j.LoggerFactory;
 import java.util.Scanner;
 
 public class Main {
-    private static final Logger logger = LoggerFactory.getLogger(Main.class);
-
-    public static void main(String[] args) {
-        LoginUI loginUI = new LoginUI();
-
-        loginUI.loginMenu();
-
-        OrdersUI ordersUI = new OrdersUI();
-
-
-
-
-    }
+//    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+//
+//    public static void main(String[] args) {
+//        LoginUI loginUI = new LoginUI();
+//
+//        loginUI.loginMenu();
+//
+//        OrdersUI ordersUI = new OrdersUI();
+//
+//
+//
+//
+//    }
 }
