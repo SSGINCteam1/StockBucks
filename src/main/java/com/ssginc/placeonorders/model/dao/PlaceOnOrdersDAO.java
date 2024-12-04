@@ -24,15 +24,12 @@ public class PlaceOnOrdersDAO {
     }
 
     // 전체 데이터 조회
-    public ArrayList<PlaceonOrdersDTO> selectAllOrderableStocks(Connection con, int pageSize, int offset) {
+    public ArrayList<PlaceonOrdersDTO> selectAllOrderableStocks(Connection con) {
         ArrayList<PlaceonOrdersDTO> list = new ArrayList<>();
         String sql = "select st_no, st_name, st_price, st_quantity, st_category, st_unit " +
-                "from stock where st_state = 1 and st_owner = 1 " +
-                "LIMIT ? OFFSET ?";
+                "from stock where st_state = 1 and st_owner = 1 ";
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, pageSize); // 페이징 크기 설정
-            ps.setInt(2, offset);   // 시작점 설정
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     PlaceonOrdersDTO user = new PlaceonOrdersDTO();
@@ -54,16 +51,13 @@ public class PlaceOnOrdersDAO {
     }
 
     // 특정 카테고리 데이터 조회
-    public ArrayList<PlaceonOrdersDTO> selectAllOrderableStocksByCategory(Connection con, int st_category, int pageSize, int offset) {
+    public ArrayList<PlaceonOrdersDTO> selectAllOrderableStocksByCategory(Connection con, int st_category) {
         ArrayList<PlaceonOrdersDTO> list = new ArrayList<>();
         String sql = "select st_no, st_name, st_price, st_quantity, st_category, st_unit " +
-                "from stock where st_state = 1 and st_category = ? and st_owner = 1 " +
-                "LIMIT ? OFFSET ?";
+                "from stock where st_state = 1 and st_category = ? and st_owner = 1 ";
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, st_category); // 파라미터 설정
-            ps.setInt(2, pageSize);
-            ps.setInt(3, offset);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     // DTO 객체 생성 및 값 설정
@@ -88,18 +82,15 @@ public class PlaceOnOrdersDAO {
 
 
     // 검색 데이터 조회
-    public ArrayList<PlaceonOrdersDTO> selectAllOrderableStocksByKeyword(Connection con, String keyword, int pageSize, int offset) {
+    public ArrayList<PlaceonOrdersDTO> selectAllOrderableStocksByKeyword(Connection con, String keyword) {
         ArrayList<PlaceonOrdersDTO> list = new ArrayList<>();
         String sql = "SELECT st_no, st_name, st_price, st_quantity, st_category, st_unit " +
                 "FROM stock " +
-                "WHERE st_state = 1 AND st_name LIKE ? AND st_owner = 1 " +
-                "LIMIT ? OFFSET ?";
+                "WHERE st_state = 1 AND st_name LIKE ? AND st_owner = 1 ";
 
 
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, "%" + keyword + "%"); // 파라미터 설정
-            ps.setInt(2, pageSize);
-            ps.setInt(3, offset);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     // DTO 객체 생성 및 값 설정
@@ -124,20 +115,18 @@ public class PlaceOnOrdersDAO {
         return list;
     }
 
-    public ArrayList<PlaceonOrdersCheckDTO> selectAllOrderableStockChecks(Connection con, int pageSize, int offset) {
+    public ArrayList<PlaceonOrdersCheckDTO> selectAllOrderableStockChecks(Connection con) {
         ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
         String sql = "SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, " +
                 "(s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name " +
                 "FROM place_orders_stock post " +
                 "INNER JOIN stock s ON post.st_no = s.st_no " +
                 "INNER JOIN place_orders po ON post.po_no = po.po_no " +
-                "INNER JOIN users u ON po.users_no = u.users_no " +
-                "LIMIT ? OFFSET ?";
+                "INNER JOIN users u ON po.users_no = u.users_no ";
 
 
         try (PreparedStatement ps = con.prepareStatement(sql)){
-           ps.setInt(1, pageSize);
-            ps.setInt(2, offset);
+
              try(ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 // DTO 객체 생성 및 값 설정
@@ -178,20 +167,17 @@ public class PlaceOnOrdersDAO {
         }
     }
 
-    public ArrayList<PlaceOnOrdersHistoryDTO> HistoryplaceOrdersStockByCategory(Connection con, int category, int pageSize, int offset) {
+    public ArrayList<PlaceOnOrdersHistoryDTO> HistoryplaceOrdersStockByCategory(Connection con, int category) {
         ArrayList<PlaceOnOrdersHistoryDTO> list = new ArrayList<>();
         String sql = "SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, " +
                 "(s.st_price * post.post_quantity) AS sub_total, s.st_category " +
                 "FROM place_orders_stock post " +
                 "INNER JOIN stock s " +
                 "ON post.st_no = s.st_no " +
-                "WHERE s.st_category = ? " +
-                "LIMIT ? OFFSET ?";
-
+                "WHERE s.st_category = ? ";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, category);
-            ps.setInt(2,pageSize);
-            ps.setInt(3,offset);
+
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -223,7 +209,7 @@ public class PlaceOnOrdersDAO {
     }
 
     public void DeleteOrderHistory(Connection con, PlaceOrdersVO vo) {
-        String sql = "delete from place_orders where po_no = ?;";
+        String sql = "delete from place_orders where po_no = ?";
         try(PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, vo.getPoNo());
             ps.executeUpdate();
@@ -253,7 +239,7 @@ public class PlaceOnOrdersDAO {
     }
     // ----------------------  기간별 주문 내역 조회 ----------------------
     // 년도별 주문 내역 목록 조회
-    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByYear(Connection conn, int year, int pageSize, int offset) {
+    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByYear(Connection conn, int year) {
         ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
         String sql = """
         SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, (s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name
@@ -265,14 +251,10 @@ public class PlaceOnOrdersDAO {
         INNER JOIN users u
         ON po.users_no = u.users_no
         where year(po_date) = ?
-        order by po_date LIMIT ? OFFSET ?
                  """;
 
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, year);
-            ps.setInt(2,pageSize);
-            ps.setInt(3,offset);
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     PlaceonOrdersCheckDTO user = new PlaceonOrdersCheckDTO();
@@ -299,7 +281,7 @@ public class PlaceOnOrdersDAO {
 
     // 월별 발주 내역 목록 조회
 
-    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByMonth(Connection conn, int month,int year, int pageSize, int offset) {
+    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByMonth(Connection conn, int month,int year) {
         ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
         String sql = """
         SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, (s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name
@@ -312,14 +294,11 @@ public class PlaceOnOrdersDAO {
         ON po.users_no = u.users_no
         where month(po_date) = ?
         and year(po_date) = ?
-        order by po_date LIMIT ? OFFSET ?
                 """;
 
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, month);
             ps.setInt(2, year);
-            ps.setInt(3,pageSize);
-            ps.setInt(4,offset);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -345,7 +324,7 @@ public class PlaceOnOrdersDAO {
 
     // 일자별 발주 내역 목록 조회
 
-    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByDay(Connection conn, int day,int month,int year, int pageSize, int offset) {
+    public ArrayList<PlaceonOrdersCheckDTO> PlaceOnOrdersHistoryByDay(Connection conn, int day,int month,int year) {
         ArrayList<PlaceonOrdersCheckDTO> list = new ArrayList<>();
         String sql = """
         SELECT post.po_no, post.st_no, s.st_name, s.st_price, post.post_quantity, (s.st_price * post.post_quantity) AS sub_total, s.st_category, po.po_date, u.users_name
@@ -359,15 +338,12 @@ public class PlaceOnOrdersDAO {
         where day(po_date) = ?
         and month(po_date) = ?
         and year(po_date) = ?
-        order by po_date LIMIT ? OFFSET ?
                 """;
 
         try(PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, day);
             ps.setInt(2, month);
             ps.setInt(3,year);
-            ps.setInt(4,pageSize);
-            ps.setInt(5,offset);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {

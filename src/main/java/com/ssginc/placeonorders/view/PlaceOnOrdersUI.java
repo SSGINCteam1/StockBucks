@@ -22,7 +22,6 @@ public class PlaceOnOrdersUI {
     private final PlaceOnOrdersDAO dao;
     private final DataSource dataSource;
     private final UsersDTO user;
-    boolean running = true;
 
 
     public PlaceOnOrdersUI(UsersDTO user) {
@@ -34,12 +33,13 @@ public class PlaceOnOrdersUI {
 
     // 발주
     public void PlaceOnOrderschoice() {
+        boolean running = true;
 
         while (running) {
             System.out.println("===================================");
             System.out.println("[발주]");
             System.out.println("1.지점 재고 조회\t2. 발주 가능 품목 조회\t3. 발주 신청\t4. 발주 수정 및 취소\t5. 발주 내역 조회\n" +
-                    "6.종료\n");
+                    "6.상위메뉴\t7.종료\n");
             System.out.print(">> ");
 
             int choice = sc.nextInt();
@@ -58,6 +58,9 @@ public class PlaceOnOrdersUI {
                     displayHistoryStocks();
                     break;
                 case 6:
+                    CommonUI.displayGoBackMessage();
+                    return;
+                case 7:
                     CommonUI.displayExitMessage();
                     System.exit(0);
                 default:
@@ -70,6 +73,7 @@ public class PlaceOnOrdersUI {
 
     //  발주 가능 품목 조회
     public void displayOrderableStocks() {
+        boolean running = true;
 
         while (running) {
             System.out.println("===================================");
@@ -89,7 +93,7 @@ public class PlaceOnOrdersUI {
                     displayAllOrderableStocksbyKeyword();
                     break;
                 case 4:
-                    PlaceOnOrdersInsertBag(0);
+                    PlaceOnOrdersInsertBag(1);
                     break;
                 case 5:
                     CommonUI.displayGoBackMessage();
@@ -105,6 +109,7 @@ public class PlaceOnOrdersUI {
 
     // 발주 내역 조회
     public void displayHistoryStocks() {
+        boolean running = true;
 
         while (running) {
             System.out.println("===================================");
@@ -135,6 +140,7 @@ public class PlaceOnOrdersUI {
 
     // 전체 발주 가능 품목 조회 구현
     public void displayAllOrderableStocks(int i) {
+        boolean running = true;
 
         while (running) {
             try (Connection con = dataSource.getConnection()) {
@@ -145,6 +151,10 @@ public class PlaceOnOrdersUI {
                 } else {
                     for (PlaceonOrdersDTO stock : stocks) {
                         System.out.println(stock);
+                    }
+                    if(i==0)
+                    {
+                        break;
                     }
                 }
             } catch (SQLException e) {
@@ -216,6 +226,7 @@ public class PlaceOnOrdersUI {
 
     // 키워드로 검색 구현
     public void displayAllOrderableStocksbyKeyword() {
+        boolean running = true;
 
         while (running) {
             System.out.println("===================================\n");
@@ -260,6 +271,7 @@ public class PlaceOnOrdersUI {
     // 조건부 조회
     public void displayHistoryOrderableStocksByCondition() {
         boolean running = true;
+
         while (running) {
             System.out.println("===================================\n");
             System.out.println("[조건부 조회] \n");
@@ -286,6 +298,7 @@ public class PlaceOnOrdersUI {
     // 선택 및 장바구니 담기
     public void PlaceOnOrdersInsertBag(int i) {
         boolean running = true;
+
         while (running) {
             try (Connection con = dataSource.getConnection()) {
                 System.out.println("===================================");
@@ -320,9 +333,10 @@ public class PlaceOnOrdersUI {
                     System.out.print(">> ");
                     int x = sc.nextInt();
 
-                    if (x == 2)
+                    if (x == 2) {
                         CommonUI.displayGoBackMessage();
-                return;
+                        return;
+                    }
             }
         }
         PlaceOnOrderschoice();
@@ -332,6 +346,8 @@ public class PlaceOnOrdersUI {
 
     // 발주 내역 조회
     public void displayAllHistoryOrderableStocks(int i) {
+        boolean running = true;
+
         if (i == 1) {
             while (running) {
                 try (Connection con = dataSource.getConnection()) {
@@ -383,6 +399,8 @@ public class PlaceOnOrdersUI {
 
     // 발주내역 카테고리 조회
     public void displayHistoryOrderableStocksByCategory() {
+        boolean running = true;
+
         while (running) {
             try (Connection con = dataSource.getConnection()) {
                 System.out.println("===================================\n");
@@ -419,6 +437,8 @@ public class PlaceOnOrdersUI {
 
     //발주 수정 및 취소
     public void UpdateDeleteOrderableStock() {
+        boolean running = true;
+
         while (running) {
                 System.out.println("===================================");
                 System.out.println("[발주 수정 및 취소] \n");
@@ -446,6 +466,8 @@ public class PlaceOnOrdersUI {
     }
     // 발주 취소 구현
     public void DeleteOrderableStock() {
+        boolean running = true;
+
         while (running) {
             try (Connection con = dataSource.getConnection()) {
                 System.out.println("===================================");
@@ -453,10 +475,14 @@ public class PlaceOnOrdersUI {
                 displayAllHistoryOrderableStocks(0);
 
 
-                System.out.println("삭제하실 품목의 고유번호를 입력해주세요: ");
+                System.out.println("삭제하실 발주번호를 입력해주세요: ");
+                System.out.print(">> ");
+
                 int stNo = sc.nextInt();
 
-                System.out.print("정말 삭제하시겠습니까? (Y/N): ");
+                System.out.println("정말 삭제하시겠습니까? (Y/N): ");
+                System.out.print(">> ");
+
                 String a = sc.next();
 
                 if (a.equals("Y")) {
@@ -494,6 +520,8 @@ public class PlaceOnOrdersUI {
 
     // 발주 수정 구현
     public void UpdateOrderableStock() {
+        boolean running = true;
+
         while (running) {
             try (Connection con = dataSource.getConnection()) {
                 System.out.println("===================================");
@@ -550,6 +578,8 @@ public class PlaceOnOrdersUI {
      */
     private void PlaceOnOrdersHistoryByPeriod(){
         try(Connection con = dataSource.getConnection()) {
+            boolean running = true;
+
             while (running) {
                 System.out.println("===================================\n");
                 System.out.println("[기간별 발주 내역 조회]\n");
@@ -624,6 +654,8 @@ public class PlaceOnOrdersUI {
 
 
         }
+
+
     }
 
 
