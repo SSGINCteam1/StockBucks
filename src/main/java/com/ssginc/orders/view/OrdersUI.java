@@ -1,12 +1,11 @@
 package com.ssginc.orders.view;
 
-import com.ssginc.Main;
 import com.ssginc.common.view.ANSIStyle;
 import com.ssginc.common.view.CommonUI;
 import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.orders.model.dto.*;
-import com.ssginc.orders.service.TimOrdersService;
-import com.ssginc.orders.service.TimOrdersServiceImpl;
+import com.ssginc.orders.service.OrdersService;
+import com.ssginc.orders.service.OrdersServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -17,14 +16,14 @@ import java.util.Scanner;
 @Slf4j
 public class OrdersUI {
     private final Scanner sc;
-    private final TimOrdersService timOrdersService;
+    private final OrdersService ordersService;
 
     private UsersDTO user;
     private static List<ProductsDTO> order;
 
     public OrdersUI(UsersDTO user) {
         this.sc = new Scanner(System.in);
-        this.timOrdersService = new TimOrdersServiceImpl();
+        this.ordersService = new OrdersServiceImpl();
         this.user = user;
     }
 
@@ -147,14 +146,7 @@ public class OrdersUI {
      * @param purpose   사용 목적 (1: 품목 조회, 2: 품목 주문, 3: 품목 판매 중지)
      */
     private void selectBeverageCategory(int purpose) {
-
-        int currpage = 1;
-
-        int pageSize = 9;
-
-        int totalSize = timOrdersService.selectPrdCgListRownumAll();
-
-        List<PrdCgDTO> prdCgs = timOrdersService.selectPrdCgListAll(currpage, pageSize);
+        List<PrdCgDTO> prdCgs = ordersService.selectPrdCgListAll();
 
         String[] menus = {"[음료 조회]", "[음료 주문]", "[음료 판매 중지]"};
 
@@ -220,36 +212,11 @@ public class OrdersUI {
         int pageSize = 9;
 
         while (true) {
-            ArrayList<ProductsDTO> products = timOrdersService.selectProductsListByPrdcgNo(prdcgNo, purpose, currPage, pageSize);
-            int totalPages = timOrdersService.selectProductsListRownumByPrdcgNo(prdcgNo, purpose);
+            ArrayList<ProductsDTO> products = ordersService.selectProductsListByPrdcgNo(prdcgNo, purpose, currPage, pageSize);
+            int totalSize = ordersService.selectProductsListRownumByPrdcgNo(prdcgNo, purpose);
+            int totalPages = (int) Math.ceil((double) totalSize / pageSize); // 총 페이지 수 계산
 
-            System.out.println("==================================================================");
-            CommonUI.printCentered(menus[purpose - 1]);
-            System.out.println("==================================================================\n");
-
-            if (products == null || products.isEmpty()) {
-                displayEmptyMsg();
-                return;
-            }
-
-            int idx = 0;
-
-            System.out.printf("현재 페이지: %d / %d\n", currPage, totalPages);
-            System.out.println("------------------------------------------------------------------");
-            System.out.printf(
-                    "%-10s %-30s %-10s %-10s\n",
-                    "번호", "품목명", "가격", "상태"
-            );
-            System.out.println("------------------------------------------------------------------");
-
-            for (idx = 0; idx < products.size(); idx++) {
-                ProductsDTO product = products.get(idx);
-                System.out.printf(
-                        "%-10d %-30s %-10d %-10s\n",
-                        idx + 1, product.getPname(), product.getPrice(), product.isActive() ? "판매중" : "판매 중지"
-                );
-            }
-            System.out.println("------------------------------------------------------------------");
+            this.displayColumn(menus, purpose, products, totalPages, currPage, pageSize);
 
             CommonUI.displayPageBar(currPage, totalPages);
 
@@ -307,129 +274,126 @@ public class OrdersUI {
      */
     private void selectFoodOrMdMenu(int purpose, boolean isFood) {
 
-        int type1 = isFood ? 0 : 1;
-
-        int currentPage = 1;
-
-        int pageSize = 9;
-
-        int totalSize = timOrdersService.selectEtcListRownumAll(type1, false);
-
-        ArrayList<ProductsDTO> products = timOrdersService.selectEtcListAll(purpose, type1, currentPage, pageSize);
-
         String type = isFood ? "푸드" : "MD";
-
-
         String[] menus = {"[" + type + "조회]\n", "[" + type + "주문]\n", "[" + type + "판매 일시 중지]\n"};
 
+        int type1 = isFood ? 0 : 1;
+
+        int currPage = 1;
+        int pageSize = 9;
+
         while (true) {
-            System.out.println("==================================================================\n");
-            System.out.println(menus[purpose - 1]);
+            ArrayList<ProductsDTO> products = ordersService.selectEtcListAll(purpose, type1, currPage, pageSize);
+            int totalSize = ordersService.selectEtcListRownumAll(type1, false);
+            int totalPages = (int) Math.ceil((double) totalSize / pageSize); // 총 페이지 수 계산
 
-            if (products == null || products.isEmpty()) {
-                displayEmptyMsg();
-                return;
-            }
+            this.displayColumn(menus, purpose, products, totalPages, currPage, pageSize);
 
-            int preMenu = products.size() + 1;
-            int exit = products.size() + 2;
+            CommonUI.displayPageBar(currPage, totalPages);
 
-            for (int i = 0; i < products.size(); i++) {
+            int choice = selectPageMenu();
 
-                ProductsDTO product = products.get(i);
-
-                System.out.print((i + 1) + ". " + product.getPname() + " - " + product.getPrice() + "원");
-                if (!product.isActive()){
-                    System.out.println(" (판매 중지)");
-                }
-            }
-            System.out.print(preMenu + ". \t" + "상위 메뉴");
-            System.out.print("\t" + exit + ". \t" + "종료");
-            int choice = safeInput();
-
-            if (purpose == 2) { // 품목 주문
-                if (choice >= 1 && choice < preMenu) {
-                    selectBeverageOption(products.get(choice - 1));
+            switch (choice) {
+                case 10: // 다음 페이지
+                    if (currPage < totalPages) currPage++;
+                    break;
+                case 11: // 이전 페이지
+                    if (currPage > 1) currPage--;
+                    break;
+                case 12: // 페이지 직접 입력
+                    System.out.print("이동할 페이지 번호를 입력하세요: ");
+                    int newPage = sc.nextInt();
+                    if (newPage > 0 && newPage <= totalPages) {
+                        currPage = newPage;
+                    } else {
+                        System.out.println("유효하지 않은 페이지 번호입니다.");
+                    }
+                    break;
+                case 13: // 상위 메뉴
+                    CommonUI.displayGoBackMessage();
                     return;
-                }
-            } else if (purpose == 3){ // 판매 중지
-                if (choice >= 1 && choice < preMenu) {
-                    this.displayPauseSale(products.get(choice - 1));
-                    return;
-                }
+                case 14: // 종료
+                    CommonUI.displayExitMessage();
+                    System.exit(0);
+                default:
+                    if (purpose == 2) { // 품목 주문
+                        if (choice >= 1 && choice <= 9) {
+                            ProductsDTO product = products.get(choice - 1);
+                            product.setIsBeverage(2);
+                            addtionalOrder(product);
+                            return;
+                        }
+                    } else if (purpose == 3) { // 판매 중지
+                        if (choice >= 1 && choice <= 9) {
+                            this.displayPauseSale(products.get(choice - 1));
+                            currPage = 1;
+                            break;
+                        }
+                    } else {
+                        CommonUI.displayWrongSelectMessage();
+                    }
             }
-
-            if (choice == preMenu) {
-                return;
-            } else if (choice == exit) {
-                CommonUI.displayExitMessage();
-                System.exit(0);
-            } else {
-                CommonUI.displayWrongSelectMessage();
-            }
-
             System.out.println("\n==================================================================\n");
         }
     }
 
     private void selectBottleMenu(int purpose, String prdcgName) {
+        String[] menus = { "[" + prdcgName + " 조회]", "[" + prdcgName + " 주문]", "[" + prdcgName + " 판매 일시 중지]"};
 
         int currPage = 1;
-
         int pageSize = 9;
 
-        int totalSize = timOrdersService.selectEtcListRownumAll(4, false);
-
-
-        ArrayList<ProductsDTO> products = timOrdersService.selectEtcListAll(purpose, 4, currPage, pageSize);
-
-        String[] menus = {"조회]\n", "주문]\n", "판매 일시 중지]\n"};
-
         while (true) {
-            System.out.println("==================================================================\n");
-            System.out.println("[" + prdcgName + " " + menus[purpose - 1]);
+            ArrayList<ProductsDTO> products = ordersService.selectEtcListAll(purpose, 4, currPage, pageSize);
+            int totalSize = ordersService.selectEtcListRownumAll(4, false);
+            int totalPages = (int) Math.ceil((double) totalSize / pageSize); // 총 페이지 수 계산
 
-            if (products == null) {
-                displayEmptyMsg();
-                return;
-            }
+            this.displayColumn(menus, purpose, products, totalPages, currPage, pageSize);
 
-            int preMenu = products.size() + 1;
-            int exit = products.size() + 2;
+            CommonUI.displayPageBar(currPage, totalPages);
 
-            for (int i = 0; i < products.size(); i++) {
-                System.out.println((i + 1) + ". " + products.get(i).getPname() + " - " + products.get(i).getPrice() + "원");
-            }
-            System.out.print(preMenu + ". \t" + "상위 메뉴");
-            System.out.print("\t" + exit + ". \t" + "종료");
-            int choice = safeInput();
+            int choice = selectPageMenu();
 
-            System.out.println("\n==================================================================\n");
-
-
-            if (purpose == 2) { // 품목 주문
-                if (choice >= 1 && choice < preMenu) {
-                    ProductsDTO product = products.get(choice - 1);
-                    product.setIsBeverage(2);
-                    addtionalOrder(product);
+            switch (choice) {
+                case 10: // 다음 페이지
+                    if (currPage < totalPages) currPage++;
+                    break;
+                case 11: // 이전 페이지
+                    if (currPage > 1) currPage--;
+                    break;
+                case 12: // 페이지 직접 입력
+                    System.out.print("이동할 페이지 번호를 입력하세요: ");
+                    int newPage = sc.nextInt();
+                    if (newPage > 0 && newPage <= totalPages) {
+                        currPage = newPage;
+                    } else {
+                        System.out.println("유효하지 않은 페이지 번호입니다.");
+                    }
+                    break;
+                case 13: // 상위 메뉴
+                    CommonUI.displayGoBackMessage();
                     return;
-                }
-            } else if (purpose == 3){ // 판매 중지
-                if (choice >= 1 && choice < preMenu) {
-                    this.displayPauseSale(products.get(choice - 1));
-                    return;
-                }
+                case 14: // 종료
+                    CommonUI.displayExitMessage();
+                    System.exit(0);
+                default:
+                    if (purpose == 2) { // 품목 주문
+                        if (choice >= 1 && choice <= 9) {
+                            ProductsDTO product = products.get(choice - 1);
+                            product.setIsBeverage(2);
+                            addtionalOrder(product);
+                            return;
+                        }
+                    } else if (purpose == 3) { // 판매 중지
+                        if (choice >= 1 && choice <= 9) {
+                            this.displayPauseSale(products.get(choice - 1));
+                            currPage = 1;
+                            break;
+                        }
+                    } else {
+                        CommonUI.displayWrongSelectMessage();
+                    }
             }
-
-            if (choice == preMenu) {
-                return;
-            } else if (choice == exit) {
-                CommonUI.displayExitMessage();
-                System.exit(0);
-            } else {
-                CommonUI.displayWrongSelectMessage();
-            }
-
             System.out.println("\n==================================================================\n");
         }
     }
@@ -441,7 +405,7 @@ public class OrdersUI {
 
         List<OptionsDTO> opts = new ArrayList<>();
 
-        ArrayList<PrdOptDTO> prdopt = timOrdersService.selectPrdOpt(product.getPno());
+        ArrayList<PrdOptDTO> prdopt = ordersService.selectPrdOpt(product.getPno());
 
         while (true) {
             System.out.println("===================================\n");
@@ -594,7 +558,7 @@ public class OrdersUI {
 
             if (choice == 1) {
                 order.add(product); // 주문 리스트에 추가
-                timOrdersService.insertOrders(order, user.getUsersNo());
+                ordersService.insertOrders(order, user.getUsersNo());
                 order.clear(); // 초기화
                 return;
             } else if (choice == 2) {
@@ -617,12 +581,12 @@ public class OrdersUI {
         System.out.println("==================================================================\n");
         System.out.println("[주문 취소]\n");
 
-        long diffMin = timOrdersService.getDiffMinOrderDateAndNow(orderDetail.getOrderDate());
+        long diffMin = ordersService.getDiffMinOrderDateAndNow(orderDetail.getOrderDate());
 
         if (diffMin >= 5) {
             System.out.println("주문 시간 5분 경과하여 취소 불가합니다.");
         } else {
-            if (timOrdersService.cancelOrderDetails(orderDetail) >= 1) {
+            if (ordersService.cancelOrderDetails(orderDetail) >= 1) {
                 System.out.println("주문 취소에 성공했습니다.");
             } else {
                 System.out.println("주문 취소에 실패했습니다.");
@@ -735,29 +699,29 @@ public class OrdersUI {
             // 조회 데이터 가져오기
             switch (type) {
                 case 1: // 전체 조회
-                    totalSize = timOrdersService.selectOrdersListRownumAll();
-                    orders = timOrdersService.selectOrderList(currPage, pageSize);
+                    totalSize = ordersService.selectOrdersListRownumAll();
+                    orders = ordersService.selectOrderList(currPage, pageSize);
                     break;
                 case 2:
                 case 4:// 기간별 & 사용자 정의(기간만) 조회
-                    totalSize = timOrdersService.selectOrdersListRownumByPeriod(startDate, endDate);
-                    orders = timOrdersService.selectOrderListByPeriod(startDate, endDate, currPage, pageSize);
+                    totalSize = ordersService.selectOrdersListRownumByPeriod(startDate, endDate);
+                    orders = ordersService.selectOrderListByPeriod(startDate, endDate, currPage, pageSize);
                     break;
                 case 3: // 유저별 조회
                     if (userNo == null) {
                         System.out.println("유저 번호가 필요합니다.");
                         return;
                     }
-                    totalSize = timOrdersService.selectOrdersListRownumByUsers(userNo);
-                    orders = timOrdersService.selectOrdersListByUsersNo(userNo, currPage, pageSize);
+                    totalSize = ordersService.selectOrdersListRownumByUsers(userNo);
+                    orders = ordersService.selectOrdersListByUsersNo(userNo, currPage, pageSize);
                     break;
                 case 5: // 사용자 정의 기간 + 유저별 조회
                     if (userNo == null) {
                         System.out.println("유저 번호가 필요합니다.");
                         return;
                     }
-                    totalSize = timOrdersService.selectOrdersListRownumByCustomAndUsersNo(userNo, startDate, endDate);
-                    orders = timOrdersService.selectOrderListByCustomAndUsersNo(userNo, startDate, endDate, currPage, pageSize);
+                    totalSize = ordersService.selectOrdersListRownumByCustomAndUsersNo(userNo, startDate, endDate);
+                    orders = ordersService.selectOrderListByCustomAndUsersNo(userNo, startDate, endDate, currPage, pageSize);
                     break;
                 default:
                     CommonUI.displayWrongSelectMessage();
@@ -765,8 +729,6 @@ public class OrdersUI {
             }
 
             int totalPages = (int) Math.ceil((double) totalSize / pageSize); // 총 페이지 수 계산
-
-            log.info("totalPages = {}", totalPages);
 
             // 결과 출력 및 페이지 처리
             while (true) {
@@ -812,17 +774,17 @@ public class OrdersUI {
                 // 조회 데이터 갱신
                 switch (type) {
                     case 1:
-                        orders = timOrdersService.selectOrderList(currPage, pageSize);
+                        orders = ordersService.selectOrderList(currPage, pageSize);
                         break;
                     case 2:
                     case 4:
-                        orders = timOrdersService.selectOrderListByPeriod(startDate, endDate, currPage, pageSize);
+                        orders = ordersService.selectOrderListByPeriod(startDate, endDate, currPage, pageSize);
                         break;
                     case 3:
-                        orders = timOrdersService.selectOrdersListByUsersNo(userNo, currPage, pageSize);
+                        orders = ordersService.selectOrdersListByUsersNo(userNo, currPage, pageSize);
                         break;
                     case 5:
-                        orders = timOrdersService.selectOrderListByCustomAndUsersNo(userNo, startDate, endDate, currPage, pageSize);
+                        orders = ordersService.selectOrderListByCustomAndUsersNo(userNo, startDate, endDate, currPage, pageSize);
                         break;
                 }
             }
@@ -1017,10 +979,10 @@ public class OrdersUI {
         String userName = sc.nextLine();
 
         // 전체 갯수
-        int totalSize = timOrdersService.selectUsersListRownumByUsersName(userName);
+        int totalSize = ordersService.selectUsersListRownumByUsersName(userName);
         int totalPages = (int) Math.ceil((double) totalSize / pageSize); // 총 페이지 수 계산
 
-        List<UsersDTO> users = timOrdersService.selectUsersListByUsersName(userName, page, pageSize);
+        List<UsersDTO> users = ordersService.selectUsersListByUsersName(userName, page, pageSize);
 
         while (true) {
             if (users == null) {
@@ -1090,7 +1052,7 @@ public class OrdersUI {
             StringBuffer sb = new StringBuffer();
             sb.append("\n").append("==================================================================").append("\n");
             sb.append("[주문 세부 내역]\n");
-            OrderDetailsDTO orderDetail = timOrdersService.selectOrdersDetail(order.getOrderNo());
+            OrderDetailsDTO orderDetail = ordersService.selectOrdersDetail(order.getOrderNo());
 
             if (orderDetail == null || orderDetail.getProducts().isEmpty()) {
                 this.displayEmptyMsg();
@@ -1172,7 +1134,7 @@ public class OrdersUI {
      * @return
      */
     private int selectPageMenu() {
-        String[] str = {"10. 다음 페이지", "11. 이전 페이지", "12. 페이지 입력", "13. 상위 메뉴", ANSIStyle.RED + "14. 시스템 종료" + ANSIStyle.RESET};
+        String[] str = {"\n10. 다음 페이지", "11. 이전 페이지", "12. 페이지 입력", "13. 상위 메뉴", ANSIStyle.RED + "14. 시스템 종료" + ANSIStyle.RESET};
 
         for (int i = 0; i < str.length; i++) {
             System.out.printf("%-20s", str[i]);
@@ -1181,7 +1143,7 @@ public class OrdersUI {
                 System.out.println();
             }
         }
-        System.out.println("==================================================================");
+        System.out.println("\n==================================================================");
         return safeInput();
     }
 
@@ -1192,21 +1154,21 @@ public class OrdersUI {
 
         while (true) {
             System.out.println("==================================================================\n");
-            System.out.println("[품목 판매 중지]\n");
+            CommonUI.printCentered("[품목 판매 중지]\n");
 
             System.out.println(product.getPname());
 
             if (product.isActive()){
-                System.out.println("\n1. 판매 중지");
+                System.out.print("\n1. 판매 중지");
             } else {
-                System.out.println("\n1. 판매 중지 해제");
+                System.out.print("\n1. 판매 중지 해제");
             }
 
-            System.out.println("\t2. 상위 메뉴\t3.종료\n");
+            System.out.println("\t2. 상위 메뉴\t3.종료");
             int choice = safeInput();
 
             if (choice == 1) {
-                int res = timOrdersService.updateProductsIsActive(product.getPno(), product.isActive());
+                int res = ordersService.updateProductsIsActive(product.getPno(), product.isActive());
                 if (res == 1) {
                     System.out.println("판매 중지 성공");
                 } else {
@@ -1257,7 +1219,7 @@ public class OrdersUI {
 
         while (true) {
             try {
-                System.out.print(">> ");
+                System.out.print("\n>> ");
                 input = sc.nextInt(); // 입력값 받기
                 break; // 유효한 입력값이면 반복 종료
             } catch (InputMismatchException e) {
@@ -1267,6 +1229,37 @@ public class OrdersUI {
         }
 
         return input;
+    }
+
+
+    private void displayColumn(String[] menus, int purpose, ArrayList<ProductsDTO> products, int totalPages, int currPage, int pageSize){
+        System.out.println("==================================================================");
+        CommonUI.printCentered(menus[purpose - 1]);
+        System.out.println("==================================================================\n");
+
+        if (products == null || products.isEmpty()) {
+            displayEmptyMsg();
+            return;
+        }
+
+        int idx = 0;
+
+        System.out.printf("현재 페이지: %d / %d\n", currPage, totalPages);
+        System.out.println("------------------------------------------------------------------");
+        System.out.printf(
+                "%-10s %-30s %-10s %-10s\n",
+                "번호", "품목명", "가격", "상태"
+        );
+        System.out.println("------------------------------------------------------------------");
+
+        for (idx = 0; idx < products.size(); idx++) {
+            ProductsDTO product = products.get(idx);
+            System.out.printf(
+                    "%-10d %-30s %-10d %-10s\n",
+                    idx + 1, product.getPname(), product.getPrice(), product.isActive() ? "판매중" : ANSIStyle.RED + "판매 중지" + ANSIStyle.RESET
+            );
+        }
+        System.out.println("------------------------------------------------------------------");
     }
 
 }

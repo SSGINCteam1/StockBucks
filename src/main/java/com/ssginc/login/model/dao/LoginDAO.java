@@ -1,7 +1,6 @@
 package com.ssginc.login.model.dao;
 
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.login.model.dto.UsersDTOTest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +13,7 @@ public class LoginDAO {
      * @param user
      * @return
      */
-    public int insertUsers(Connection con, UsersDTOTest user) {
+    public int insertUsers(Connection con, UsersDTO user) {
         int res = 0;
 
         String sql = "insert into users (users_id, users_pw, users_role, users_name, users_birth) values (?,?,?,?,?)";
@@ -59,7 +58,7 @@ public class LoginDAO {
                         .usersNo(rset.getInt("users_no"))
                         .usersId(rset.getString("users_id"))
                         .usersPw(rset.getString("users_pw"))
-                        .usersRole(rset.getString("users_role"))
+                        .usersRole(rset.getInt("users_role"))
                         .usersName(rset.getString("users_name"))
                         .build();
             }

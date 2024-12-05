@@ -174,132 +174,32 @@ CREATE TABLE IF NOT EXISTS orders_stock (
 ######## INSERT ########
 ########################
 
--- 회원 
-INSERT INTO users (users_id, users_pw, users_role, users_name, users_birth) VALUES
-('test1', '1234', 0, '김창훈', 980101),
-('test2', '1234', 1, '민소원', 020101),
-('test3', '1234', 2, '김동현', 960101);
-
--- 재고 물품
-INSERT INTO stock (st_name, st_price, st_quantity, st_owner, st_category, st_unit, st_state) VALUES
-('원두', 30000, 100, 1, 5, 'g',1),
-('크림', 30000, 100, 1, 3, 'g',1),
-('시럽', 30000, 100, 1, 3, 'ml',1),
-('우유', 30000, 100, 1, 3, 'ml',1),
-('망고주스', 7000, 150, 0, 4, 'EA', 1),
-('수박주스', 6500, 100, 0, 4, 'EA', 1),
-('머그컵', 20000, 20, 0, 1, 'EA', 1),
-('일회용빨대', 100, 250, 0, 2, 'EA', 1),
-('수박주스', 6500, 150, 1, 4, 'EA', 1);
-
--- 제조 상품 카테고리
-INSERT INTO prdcg (prdcg_name) VALUES
-('에스프레소'),
-('블론드'),
-('티바나');
-
--- 제조 상품
-INSERT INTO products (p_name, p_price, prdcg_no) VALUES
-('아메리카노', 4500, 1),
-('블론드 플랫 화이트', 5600, 2),
-('골든 캐모마일 릴렉서', 6300, 3);
-
--- 제조 상품_원자재 중개
-INSERT INTO prd_stock (p_no, st_no, pst_consume) VALUES
-(1, 1, 36),
-(2, 1, 36),
-(2, 2, 25),
-(2, 3, 10),
-(2, 4, 300);
-
--- 제조상품옵션 카테고리
-INSERT INTO opt_category (st_no, category_name) VALUES
-(NULL, '사이즈'),
-(1, '샷'),
-(2, '휘핑크림'),
-(3, '시럽'),
-(4, '우유');
-
--- 제조상품옵션
-INSERT INTO opt (opt_name, opt_price, opt_consume, category_no) VALUES
-('톨(355ml)', 0, 18, 1),
-('그란데(473ml)', 800, 36, 1),
-('벤티(591ml)', 1600, 54, 1),
-('샷', 500, 18, 2),
-('시럽', 0, 15, 4),
-('일반우유', 0, 300, 5),
-('저지방우유', 0, 300, 5),
-('무지방우유', 0, 300, 5),
-('두유', 0, 300, 5),
-('오트(귀리)', 800, 300, 5),
-('휘핑 없이', 0, 0, 3),
-('휘핑 적게', 0, 10, 3),
-('휘핑 많이', 500, 20, 3);
-
--- 제조상품_옵션 카테고리 중개 테이블
-INSERT INTO prd_optcg(category_no, p_no, optcg_name) VALUES
-(1, 1, '사이즈'), 
-(2, 1, '샷'), 
-(3, 1, '휘핑크림'), 
-(4, 1, '시럽'), 
-(5, 1, '우유');
-
-INSERT INTO prd_optcg(category_no, p_no, optcg_name) VALUES
-(1, 2, '사이즈'), 
-(2, 2, '샷'), 
-(3, 2, '휘핑크림'), 
-(4, 2, '시럽'), 
-(5, 2, '우유');
 
 -- 주문 테이블
-INSERT INTO orders (orders_quantity, orders_total, users_no) VALUES
-(3, 22300, 3);
+-- INSERT INTO orders (orders_quantity, orders_total, users_no) VALUES
+-- (3, 22300, 3);
 
 -- 주문_제조상품 테이블
-INSERT INTO orders_prd (orders_no, p_no, opd_quantity) VALUES
-(1, 1, 1),
-(1, 2, 2),
-(1, 2, 1);
+-- INSERT INTO orders_prd (orders_no, p_no, opd_quantity) VALUES
+-- (1, 1, 1),
+-- (1, 2, 2),
+-- (1, 2, 1);
 
 -- 주문_옵션 중개테이블
-INSERT INTO orders_opt (ord_prd_no, opt_no, oropt_name, oropt_price, oropt_quantity) VALUES
-(3, 4, '샷', 500, 1),
-(3, 6, '일반', 0, 1),
-(3, 13, '휘핑 많이', 500, 1);
+-- INSERT INTO orders_opt (ord_prd_no, opt_no, oropt_name, oropt_price, oropt_quantity) VALUES
+-- (3, 4, '샷', 500, 1),
+-- (3, 6, '일반', 0, 1),
+-- (3, 13, '휘핑 많이', 500, 1);
 
 -- 주문_재고물품 중개 테이블
 -- INSERT INTO orders_stock (orders_no, st_no, ost_quantity) VALUES
 -- (1, 5, 1);
 
--- 발주 테이블
-INSERT INTO place_orders (po_total, users_no) VALUES
-(300000, 2),
-(200000, 2),
-(250000, 2);
 
--- 발주 - 재고물품의 중간 테이블
-INSERT INTO place_orders_stock (po_no, st_no, post_quantity) VALUES
-(1, 3, 200),
-(1, 5, 50),
-(1, 7, 10),
-(2, 1, 50),
-(2, 2, 50),
-(3, 4, 70),
-(3, 6, 40),
-(3, 8, 250);
-
--- 회원 - 재고물품의 중간 테이블(장바구니 테이블)
-INSERT INTO place_orders_basket (users_no, st_no, pob_quantity) VALUES
-(2, 4, 80),
-(2, 1, 30),
-(2, 7, 5),
-(2, 3, 30),
-(2, 2, 50);
 
 
 ########################
 ######## SELECT ########
 ########################
-
-SELECT prdcg_no, prdcg_name FROM prdcg WHERE prdcg_state = 1;
-    
+                
+                

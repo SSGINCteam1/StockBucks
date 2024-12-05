@@ -1,7 +1,7 @@
 package com.ssginc.orders.service;
 
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.orders.model.dao.TimOrdersDAO;
+import com.ssginc.orders.model.dao.OrdersDAO;
 import com.ssginc.orders.model.dto.*;
 import com.ssginc.util.HikariCPDataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -12,19 +12,18 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class TimOrdersServiceImpl implements TimOrdersService {
-    TimOrdersDAO timOrdersDAO;
+public class OrdersServiceImpl implements OrdersService {
+    OrdersDAO ordersDAO;
     DataSource dataSource;
 
-    public TimOrdersServiceImpl(){
-        timOrdersDAO = new TimOrdersDAO();
+    public OrdersServiceImpl(){
+        ordersDAO = new OrdersDAO();
         dataSource = HikariCPDataSource.getInstance().getDataSource();
     }
 
@@ -41,7 +40,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int offset = (currentPage - 1) * pageSize;
 
         try(Connection conn = dataSource.getConnection()){
-            stocks = timOrdersDAO.selectEtcListAll(conn, type, isOrder, pageSize, offset);
+            stocks = ordersDAO.selectEtcListAll(conn, type, isOrder, pageSize, offset);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -50,14 +49,12 @@ public class TimOrdersServiceImpl implements TimOrdersService {
     }
 
     @Override
-    public ArrayList<PrdCgDTO> selectPrdCgListAll(int currentPage, int pageSize) {
+    public ArrayList<PrdCgDTO> selectPrdCgListAll() {
 
         ArrayList<PrdCgDTO> prdCgs = null;
 
-        int offset = (currentPage - 1) * pageSize;
-
         try(Connection conn = dataSource.getConnection()) {
-            prdCgs = timOrdersDAO.selectPrdCgListAll(conn, pageSize, offset);
+            prdCgs = ordersDAO.selectPrdCgListAll(conn);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -101,7 +98,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
             List<ConsumptionDTO> consumptions = null;
 
             // insert 한 orders 테이블의 기본키 반환
-            int ordersKey = timOrdersDAO.insertOrders(conn, totalQuantity, totalPrice, usersNo);
+            int ordersKey = ordersDAO.insertOrders(conn, totalQuantity, totalPrice, usersNo);
 
             if(ordersKey <= 0){
                 throw new Exception("주문 생성에 실패했습니다.");
@@ -110,7 +107,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
             for (ProductsDTO product : products) {
 
                 if (product.getIsBeverage() == 1){
-                    int ordPrdKey = timOrdersDAO.insertOrdersPrd(conn,ordersKey, product.getQuantity(), product.getPno());
+                    int ordPrdKey = ordersDAO.insertOrdersPrd(conn,ordersKey, product.getQuantity(), product.getPno());
 
                     if (ordPrdKey <= 0) {
                         throw new Exception("주문 상품 생성에 실패했습니다.");
@@ -119,14 +116,14 @@ public class TimOrdersServiceImpl implements TimOrdersService {
                     if (product.getOptions() != null){
                         for (OptionsDTO opt : product.getOptions()) {
 
-                            int optRes = timOrdersDAO.insertOrdersOpt(conn, ordPrdKey, opt.getOptNo(), opt.getPrice(), opt.getQuantity(), opt.getOptName());
+                            int optRes = ordersDAO.insertOrdersOpt(conn, ordPrdKey, opt.getOptNo(), opt.getPrice(), opt.getQuantity(), opt.getOptName());
 
                             if (optRes <= 0) {
                                 throw new Exception("옵션 생성에 실패했습니다.");
                             }
 
                             // 옵션 제조  소모량
-                            consumptions = timOrdersDAO.selectOptConsumptionList(conn,opt.getOptNo());
+                            consumptions = ordersDAO.selectOptConsumptionList(conn,opt.getOptNo());
                             for (ConsumptionDTO c : consumptions) {
                                 consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * opt.getQuantity());
                             }
@@ -135,7 +132,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
                     }
 
                     // 음료 제조 소모량
-                    consumptions = timOrdersDAO.selectProductConsumptionList(conn, product.getPno()); // 음료 제조  소모량
+                    consumptions = ordersDAO.selectProductConsumptionList(conn, product.getPno()); // 음료 제조  소모량
                     for (ConsumptionDTO c : consumptions) {
                         consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * product.getQuantity());
                     }
@@ -143,7 +140,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
                 } else if (product.getIsBeverage() == 2){
                     consumptionMap.put(product.getPno(), consumptionMap.getOrDefault(consumptionMap.get(product.getPno()), 0) + product.getQuantity());
 
-                    int stockRes = timOrdersDAO.insertOrdersStock(conn, ordersKey, product.getPno(), product.getQuantity());
+                    int stockRes = ordersDAO.insertOrdersStock(conn, ordersKey, product.getPno(), product.getQuantity());
 
                     if (stockRes <= 0) {
                         throw new Exception("재고 주문 생성에 실패했습니다.");
@@ -155,7 +152,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
             for (int key : consumptionMap.keySet()) {
                 int stockConsumption = consumptionMap.get(key);
 
-                int stockRes = timOrdersDAO.updateStockForOrders(conn, key, stockConsumption);
+                int stockRes = ordersDAO.updateStockForOrders(conn, key, stockConsumption);
 
                 if (stockRes <= 0) {
                     throw new Exception("재고 업데이트에 실패했습니다.");
@@ -198,7 +195,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         boolean isOrder = (purpose == 2);
 
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.selectProductsListRownumByPrdcgNo(conn, prdcgNo, isOrder);
+            res = ordersDAO.selectProductsListRownumByPrdcgNo(conn, prdcgNo, isOrder);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -211,7 +208,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int res = 0;
 
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.selectEtcListRownumAll(conn, type, isOrder);
+            res = ordersDAO.selectEtcListRownumAll(conn, type, isOrder);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -224,7 +221,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int res = 0;
 
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.selectPrdCgListRownumAll(conn);
+            res = ordersDAO.selectPrdCgListRownumAll(conn);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -242,7 +239,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int offset = (currentPage - 1) * pageSize;
 
         try(Connection conn = dataSource.getConnection()) {
-            prds = timOrdersDAO.selectProductsListByPrdcgNo(conn, prdcgNo, isOrder, pageSize, offset);
+            prds = ordersDAO.selectProductsListByPrdcgNo(conn, prdcgNo, isOrder, pageSize, offset);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -362,11 +359,11 @@ public class TimOrdersServiceImpl implements TimOrdersService {
 
             // 1. 주문 취소
 
-            int delOrdOpt = timOrdersDAO.deleteOrdersOptForCancelOrder(conn, orderNo);
+            int delOrdOpt = ordersDAO.deleteOrdersOptForCancelOrder(conn, orderNo);
             if (delOrdOpt <= 0) {
                 throw new Exception("주문 옵션 데이터 삭제 실패했습니다.");
             }
-            int delOrdPrd = timOrdersDAO.deleteOrdersPrdForCancelOrder(conn, orderNo);
+            int delOrdPrd = ordersDAO.deleteOrdersPrdForCancelOrder(conn, orderNo);
             if (delOrdPrd <= 0) {
                 throw new Exception("주문 음료 데이터 삭제 실패했습니다.");
             }
@@ -378,13 +375,13 @@ public class TimOrdersServiceImpl implements TimOrdersService {
             }
 
             if (includeEtc){
-                int delOrdSt = timOrdersDAO.deleteOrdersStockForCancelOrder(conn, orderNo);
+                int delOrdSt = ordersDAO.deleteOrdersStockForCancelOrder(conn, orderNo);
                 if (delOrdSt <= 0){
                     throw new Exception("주문 재고물품 데이터 삭제 실패했습니다.");
                 }
             }
 
-            int delOrder = timOrdersDAO.deleteOrdersForCancelOrder(conn, orderNo);
+            int delOrder = ordersDAO.deleteOrdersForCancelOrder(conn, orderNo);
             if (delOrder <= 0) {
                 throw new Exception("주문 데이터 삭제 실패했습니다.");
             }
@@ -397,12 +394,12 @@ public class TimOrdersServiceImpl implements TimOrdersService {
             for (ProductsDTO prd : orderDetail.getProducts()) {
 
                 if (prd.getIsBeverage() == 1){
-                    consumptions = timOrdersDAO.selectProductConsumptionList(conn, prd.getPno()); // 음료 제조  소모량
+                    consumptions = ordersDAO.selectProductConsumptionList(conn, prd.getPno()); // 음료 제조  소모량
                     for (ConsumptionDTO c : consumptions) {
                         consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * prd.getQuantity());
                     }
                     for (OptionsDTO opt : prd.getOptions()) {
-                        consumptions = timOrdersDAO.selectOptConsumptionList(conn,opt.getOptNo()); // 옵션 제조  소모량
+                        consumptions = ordersDAO.selectOptConsumptionList(conn,opt.getOptNo()); // 옵션 제조  소모량
                         for (ConsumptionDTO c : consumptions) {
                             consumptionMap.put(c.getStockNo(), consumptionMap.getOrDefault(consumptionMap.get(c.getStockNo()), 0) + c.getConsumption() * opt.getQuantity());
                         }
@@ -415,7 +412,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
             for (int key : consumptionMap.keySet()) {
                 int stockConsumption = consumptionMap.get(key);
 
-                int updSt = timOrdersDAO.updateStockForRestore(conn, key, stockConsumption);
+                int updSt = ordersDAO.updateStockForRestore(conn, key, stockConsumption);
                 if (updSt <= 0){
                     throw new Exception("재고 업데이트에 실패했습니다.");
                 }
@@ -465,7 +462,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int offset = (page - 1) * pageSize; // 페이지 번호에 따라 시작 위치 계산
         
         try(Connection conn = dataSource.getConnection()){
-            orders = timOrdersDAO.selectOrderList(conn, pageSize, offset);
+            orders = ordersDAO.selectOrderList(conn, pageSize, offset);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -484,7 +481,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int res = 0;
 
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.selectOrdersListRownumAll(conn);
+            res = ordersDAO.selectOrdersListRownumAll(conn);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -528,7 +525,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
             // DAO 호출
             try (Connection conn = dataSource.getConnection()) {
                 // 마지막 날을 포함해 조회하기 위해 1일 추가
-                orders = timOrdersDAO.selectOrderListByPeriod(conn, start.toString(), end.plusDays(1).toString(), pageSize, offset);
+                orders = ordersDAO.selectOrderListByPeriod(conn, start.toString(), end.plusDays(1).toString(), pageSize, offset);
             }
         } catch (IllegalArgumentException e) {
             log.error("입력값 형식 오류 : {}", e.getMessage(), e);
@@ -568,7 +565,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
 
             // DAO 호출
             try (Connection conn = dataSource.getConnection()) {
-                result = timOrdersDAO.selectOrdersListRownumByPeriod(conn, start.toString(), end.plusDays(1).toString());
+                result = ordersDAO.selectOrdersListRownumByPeriod(conn, start.toString(), end.plusDays(1).toString());
             }
 
 
@@ -596,7 +593,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int offset = (page - 1) * pageSize;
 
         try(Connection conn = dataSource.getConnection()){
-            users = timOrdersDAO.selectUsersListByUsersName(conn, username, pageSize, offset);
+            users = ordersDAO.selectUsersListByUsersName(conn, username, pageSize, offset);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -611,7 +608,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int res = 0;
 
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.selectUsersListRownumByUsersName(conn, userName);
+            res = ordersDAO.selectUsersListRownumByUsersName(conn, userName);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -635,7 +632,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int offset = (page - 1) * pageSize;
 
         try(Connection conn = dataSource.getConnection()){
-            orders = timOrdersDAO.selectOrdersListByUsers(conn, usersNo, pageSize, offset);
+            orders = ordersDAO.selectOrdersListByUsers(conn, usersNo, pageSize, offset);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -650,7 +647,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
 
         int res = 0;
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.selectOrdersListRownumByUsers(conn, usersNo);
+            res = ordersDAO.selectOrdersListRownumByUsers(conn, usersNo);
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -669,7 +666,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         LocalDate end = localDates[1];
 
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.selectOrdersListRownumByCustomAndUsersNo(conn, usersNo, start, end);
+            res = ordersDAO.selectOrdersListRownumByCustomAndUsersNo(conn, usersNo, start, end);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -691,7 +688,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int offset = (page - 1) * pageSize;
 
         try(Connection conn = dataSource.getConnection()){
-            orders = timOrdersDAO.selectOrderListByCustomAndUsersNo(conn, usersNo, start, end, pageSize, offset);
+            orders = ordersDAO.selectOrderListByCustomAndUsersNo(conn, usersNo, start, end, pageSize, offset);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -714,7 +711,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         OrderDetailsDTO orderdetail = null;
 
         try (Connection conn = dataSource.getConnection()){
-            orderdetail = timOrdersDAO.selectOrdersDetails(conn, orderNo);
+            orderdetail = ordersDAO.selectOrdersDetails(conn, orderNo);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {
@@ -748,7 +745,7 @@ public class TimOrdersServiceImpl implements TimOrdersService {
         int state = isActive ? 0 : 1;
 
         try(Connection conn = dataSource.getConnection()){
-            res = timOrdersDAO.updateProductsIsActive(conn, state, pno);
+            res = ordersDAO.updateProductsIsActive(conn, state, pno);
         } catch (SQLException e){
             log.error("데이터베이스 연결 오류: {}", e.getMessage(), e);
         } catch (Exception e) {

@@ -3,7 +3,6 @@ package com.ssginc.login.view;
 import com.ssginc.common.view.ANSIStyle;
 import com.ssginc.common.view.CommonUI;
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.login.model.dto.UsersDTOTest;
 import com.ssginc.login.service.LoginService;
 import com.ssginc.login.service.LoginServiceImpl;
 
@@ -29,14 +28,15 @@ public class LoginUI {
         String name = promptInput("이름 입력 >> ");
         String birthday = promptInput("생년월일 입력(예시 : 1996-02-07) >> ");
 
-        UsersDTOTest user = new UsersDTOTest();
-        user.setUsersId(id);
-        user.setUsersPw(password);
-        user.setUsersRole(role);
-        user.setUsersName(name);
-        user.setUsersBirth(birthday);
+        int res = loginService.insertUsers(UsersDTO.builder()
+                                                .usersId(id)
+                                                .usersPw(password)
+                                                .usersRole(role)
+                                                .usersName(name)
+                                                .usersBirth(birthday)
+                                            .build()
+                                            );
 
-        int res = loginService.insertUsers(user);
 
         System.out.println(res == 1 ? "회원가입이 성공했습니다." : "회원가입이 실패했습니다. 다시 시도해주세요.");
     }
@@ -104,10 +104,10 @@ public class LoginUI {
     private void welcomeUser(UsersDTO user) {
         String role = null;
         switch (user.getUsersRole()) {
-            case "0" :
+            case 0 :
                 role = "본사";
                 break;
-            case "1" :
+            case 1 :
                 role = "매니저";
                 break;
             default :
@@ -142,6 +142,7 @@ public class LoginUI {
         System.out.println(getAsciiArt());
         System.out.println("==================================================================");
         System.out.printf("%-20s %-20s %-20s\n", "1.회원 가입", "2. 로그인", ANSIStyle.RED + "3. 종료" + ANSIStyle.RESET);
+        System.out.println("==================================================================");
 
         return CommonUI.safeInput(sc);
     }

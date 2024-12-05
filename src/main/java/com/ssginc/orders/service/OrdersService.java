@@ -3,12 +3,10 @@ package com.ssginc.orders.service;
 import com.ssginc.login.model.dto.UsersDTO;
 import com.ssginc.orders.model.dto.*;
 
-import java.lang.reflect.Array;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface TimOrdersService {
+public interface OrdersService {
 
     // =================================== 3. 주문 취소 ===================================
     long getDiffMinOrderDateAndNow(String date);
@@ -62,7 +60,7 @@ public interface TimOrdersService {
 
     ArrayList<PrdOptDTO> selectPrdOpt(int pNo);
 
-    ArrayList<PrdCgDTO> selectPrdCgListAll(int currentPage, int pageSize);
+    ArrayList<PrdCgDTO> selectPrdCgListAll();
 
     // =================================== 2. 품목 주문 ===================================
 

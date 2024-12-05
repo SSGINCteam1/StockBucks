@@ -39,8 +39,6 @@ public class CommonUI {
     public static void displayPageBar(int currentPage, int totalPages) {
         StringBuffer sb = new StringBuffer();
 
-        sb.append("\t\t\t");
-
         // 이전 페이지 표시
         if (currentPage > 1) {
             sb.append("[이전] ");
@@ -63,9 +61,7 @@ public class CommonUI {
             sb.append("[다음]");
         }
 
-        sb.append("\t\t\t");
-
-        System.out.println(sb);
+        CommonUI.printCentered(sb.toString());
     }
 
 
