@@ -6,7 +6,7 @@ import com.ssginc.util.HikariCPDataSource;
 import java.sql.*;
 import java.util.ArrayList;
 
-public class ManageProductDAO {
+public class ManageProductDAO implements ManageProductDAOInterface {
     private HikariCPDataSource hikariCPDataSource;
 
     public ManageProductDAO() throws Exception {
@@ -16,6 +16,7 @@ public class ManageProductDAO {
     }
 
 
+    @Override
     public ArrayList<ManageProductVO> selectAll() throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
         ArrayList<ManageProductVO> list = new ArrayList<>();
@@ -63,6 +64,7 @@ public class ManageProductDAO {
 
     }
 
+    @Override
     public ArrayList<ManageProductVO> selectCategory(int st_category) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
         //ArrayList생성
@@ -102,6 +104,7 @@ public class ManageProductDAO {
         return list;
     }
 
+    @Override
     public ArrayList<ManageProductVO> selectKeyword(String st_name) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
 
@@ -149,6 +152,7 @@ public class ManageProductDAO {
     }
 
 
+    @Override
     public boolean update(String st_name, int st_no) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
         String sql = "update stock set st_name = ? where st_no = ?";
@@ -164,6 +168,7 @@ public class ManageProductDAO {
 
         return result > 0;
     }
+    @Override
     public boolean delete(int st_no) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
         String sql = "delete from stock where st_no = ?";
@@ -181,6 +186,7 @@ public class ManageProductDAO {
 
 
 
+    @Override
     public int insert(ManageProductVO bag) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
         String sql = "insert into stock (st_name, st_price, st_quantity, st_owner, st_category, st_unit, st_state) values (?, ?, ?, ?, ?, ?, ?)";

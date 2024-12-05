@@ -5,7 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class LoginDAO {
+public class LoginDAO implements LoginDAOInterface {
 
     /**
      * 회원가입
@@ -13,6 +13,7 @@ public class LoginDAO {
      * @param user
      * @return
      */
+    @Override
     public int insertUsers(Connection con, UsersDTO user) {
         int res = 0;
 
@@ -41,6 +42,7 @@ public class LoginDAO {
      * @param id
      * @return
      */
+    @Override
     public UsersDTO matchUsersId(Connection con, String id) {
         UsersDTO user = null;
 

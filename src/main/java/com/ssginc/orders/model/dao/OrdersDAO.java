@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class OrdersDAO {
+public class OrdersDAO implements OrdersDAOInterface {
 
     // =================================== 3. 주문 취소 ===================================
 
+    @Override
     public int deleteOrdersForCancelOrder(Connection conn, int orderNo) {
         int res = 0;
         String sql = """
@@ -29,6 +30,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int deleteOrdersOptForCancelOrder(Connection conn, int orderNo) {
         int res = 0;
         String sql = """
@@ -49,6 +51,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int deleteOrdersPrdForCancelOrder(Connection conn, int orderNo) {
         int res = 0;
         String sql = """
@@ -64,6 +67,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int deleteOrdersStockForCancelOrder(Connection conn, int orderNo) {
         int res = 0;
         String sql = """
@@ -79,6 +83,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int updateStockForRestore(Connection conn, int stockNo, int stockConsumption) {
 
         int res = 0;
@@ -102,6 +107,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public List<ConsumptionDTO> selectProductConsumptionList(Connection conn, int productNo) {
 
         List<ConsumptionDTO> res = new ArrayList<>();
@@ -136,6 +142,7 @@ public class OrdersDAO {
     }
 
 
+    @Override
     public List<ConsumptionDTO> selectOptConsumptionList(Connection conn, int optNo) {
 
         List<ConsumptionDTO> res = new ArrayList<>();
@@ -181,6 +188,7 @@ public class OrdersDAO {
      * @param conn
      * @return
      */
+    @Override
     public ArrayList<OrdersSelectDTO> selectOrderList(Connection conn, int pageSize, int offset) {
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
@@ -207,6 +215,7 @@ public class OrdersDAO {
 
         return orders;
     }
+    @Override
     public int selectOrdersListRownumAll(Connection conn) {
 
         int res = 0;
@@ -231,6 +240,7 @@ public class OrdersDAO {
 
     // 년도별 주문 내역 목록 조회
 
+    @Override
     public ArrayList<OrdersSelectDTO> selectOrderListByPeriod(Connection conn, String start, String end, int pageSize, int offset) {
 
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
@@ -266,6 +276,7 @@ public class OrdersDAO {
 
     }
 
+    @Override
     public int selectOrdersListRownumByPeriod(Connection conn, String start, String end) {
         int res = 0;
 
@@ -296,6 +307,7 @@ public class OrdersDAO {
 
 
     // ---------------------- 4.3. 유저별 주문 내역 조회 ----------------------
+    @Override
     public ArrayList<UsersDTO> selectUsersListByUsersName(Connection conn, String username, int pageSize, int offset) {
         ArrayList<UsersDTO> res = new ArrayList<>();
 
@@ -329,6 +341,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int selectUsersListRownumByUsersName(Connection conn, String userName) {
         int res = 0;
 
@@ -354,6 +367,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int selectOrdersListRownumByUsers(Connection conn, int usersNo) {
         int res = 0;
 
@@ -377,7 +391,8 @@ public class OrdersDAO {
         return res;
     }
 
-    public ArrayList<OrdersSelectDTO> selectOrdersListByUsers(Connection conn,  int usersNo, int pageSize, int offset) {
+    @Override
+    public ArrayList<OrdersSelectDTO> selectOrdersListByUsers(Connection conn, int usersNo, int pageSize, int offset) {
 
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
@@ -411,6 +426,7 @@ public class OrdersDAO {
 
 
     // ---------------------- 4.4. 사용자 정의 주문 내역 조회 ----------------------
+    @Override
     public int selectOrdersListRownumByCustom(Connection conn, String startDate, String endDate) {
 
         int res = 0;
@@ -438,6 +454,7 @@ public class OrdersDAO {
 
     }
 
+    @Override
     public ArrayList<OrdersSelectDTO> selectOrdersListByCustom(Connection conn, LocalDate start, LocalDate end, int pageSize, int offset) {
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
 
@@ -468,6 +485,7 @@ public class OrdersDAO {
 
     }
 
+    @Override
     public int selectOrdersListRownumByCustomAndUsersNo(Connection conn, int usersNo, LocalDate start, LocalDate end) {
 
         int res = 0;
@@ -490,6 +508,7 @@ public class OrdersDAO {
 
     }
 
+    @Override
     public ArrayList<OrdersSelectDTO> selectOrderListByCustomAndUsersNo(Connection conn, int usersNo, LocalDate start, LocalDate end, int pageSize, int offset) {
 
         ArrayList<OrdersSelectDTO> orders = new ArrayList<>();
@@ -525,6 +544,7 @@ public class OrdersDAO {
     // ---------------------- 4.5. 주문 내역 조회 유틸 메서드 ----------------------
 
     // 주문 세부 객체 select
+    @Override
     public OrderDetailsDTO selectOrdersDetails(Connection conn, int orderNo) {
         List<ProductsDTO> products = new ArrayList<>(); // 제품 리스트
 
@@ -649,6 +669,7 @@ public class OrdersDAO {
 
 
     // 쿼리문 결과를 OrdersSelectDTO 객체로 매핑해주는 메서드
+    @Override
     public OrdersSelectDTO mapToOrdersSelectDTO(ResultSet rs) throws SQLException {
         return OrdersSelectDTO.builder()
                 .orderNo(rs.getInt("orders_no"))
@@ -662,6 +683,7 @@ public class OrdersDAO {
 
 
     // =================================== 5. 품목 판매 중지 ===================================
+    @Override
     public int updateProductsIsActive(Connection conn, int state, int pno) {
 
         int res = 0;
@@ -688,6 +710,7 @@ public class OrdersDAO {
 
 
     // =================================== 1. 품목 조회 ===================================
+    @Override
     public ArrayList<ProductsDTO> selectEtcListAll(Connection conn, int type, boolean isOrder, int pageSize, int offset) {
 
         ArrayList<ProductsDTO> stocks = new ArrayList<>();
@@ -738,7 +761,8 @@ public class OrdersDAO {
         return stocks;
     }
 
-    public int selectEtcListRownumAll(Connection conn ,int type, boolean isOrder) {
+    @Override
+    public int selectEtcListRownumAll(Connection conn, int type, boolean isOrder) {
 
         int res = 0;
 
@@ -777,6 +801,7 @@ public class OrdersDAO {
     }
 
 
+    @Override
     public ArrayList<PrdCgDTO> selectPrdCgListAll(Connection conn) {
         ArrayList<PrdCgDTO> selectProducts = new ArrayList<>();
 
@@ -799,6 +824,7 @@ public class OrdersDAO {
         return selectProducts;
     }
 
+    @Override
     public int selectPrdCgListRownumAll(Connection conn) {
 
         int res = 0;
@@ -818,6 +844,7 @@ public class OrdersDAO {
     }
 
 
+    @Override
     public ArrayList<ProductsDTO> selectProductsListByPrdcgNo(Connection conn, int prdcgNo, boolean isOrder, int pageSize, int offset) {
         ArrayList<ProductsDTO> selectProducts = new ArrayList<>();
 
@@ -855,6 +882,7 @@ public class OrdersDAO {
         return selectProducts;
     }
 
+    @Override
     public int selectProductsListRownumByPrdcgNo(Connection conn, int prdcgNo, boolean isOrder) {
 
         int res = 0;
@@ -887,6 +915,7 @@ public class OrdersDAO {
 
     // =================================== 2. 품목 주문 ===================================
     
+    @Override
     public int insertOrders(Connection conn, int totalPrdQuantity, int totalPrice, int usersNo) {
 
         int generatedKey = 0; // 생성된 orders의 기본키
@@ -918,6 +947,7 @@ public class OrdersDAO {
         return generatedKey;
     }
 
+    @Override
     public int insertOrdersPrd(Connection conn, int ordersKey, int quantity, int pno) {
         int generatedKey = 0; // 생성된 orders의 기본키
 
@@ -948,6 +978,7 @@ public class OrdersDAO {
         return generatedKey;
     }
 
+    @Override
     public int insertOrdersOpt(Connection conn, int ordPrdKey, int optNo, int price, int quantity, String optName) {
 
         int res = 0;
@@ -991,6 +1022,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int insertOrdersStock(Connection conn, int ordersKey, int pno, int quantity) {
 
         int res = 0;
@@ -1018,6 +1050,7 @@ public class OrdersDAO {
         return res;
     }
 
+    @Override
     public int updateStockForOrders(Connection conn, int stockNo, int stockConsumption) {
 
         int res = 0;
