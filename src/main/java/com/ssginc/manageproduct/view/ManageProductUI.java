@@ -247,8 +247,9 @@ public class ManageProductUI {
 
             System.out.print("단위를 입력하세요: (g, mg, EA): ");
             System.out.print(">> ");
+            String st_unit = sc.next();
 
-            ManageProductVO newProduct = new ManageProductVO(st_name, st_price, 0, 0, st_category, null, 1);
+            ManageProductVO newProduct = new ManageProductVO(st_name, st_price, 0, 0, st_category, st_unit, 1);
             ManageProductDAO dao = new ManageProductDAO();
 
             int result = dao.insert(newProduct);
