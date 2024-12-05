@@ -368,19 +368,21 @@ public class PlaceOnOrdersUI {
                 "제품번호", "제품명", "단가", "발주수량", "발주가격", "제품 카테고리", "제품 단위");
         System.out.println("----------------------------------------------------------------------------------------------------------");
 
-        for (SelectBasketListDTO basketStock : basketList) {
-            int stockNo = basketStock.getStNo();
+        if (basketList != null) {
+            for (SelectBasketListDTO basketStock : basketList) {
+                int stockNo = basketStock.getStNo();
 
-            basketStockNo.add(stockNo);
+                basketStockNo.add(stockNo);
 
-            System.out.printf("%-10s%-20s%-10d%-10d%-10d%-20s%-10s\n",
-                    stockNo,
-                    basketStock.getStName(),
-                    basketStock.getStPrice(),
-                    basketStock.getPlaceOrdersQuantity(),
-                    basketStock.getPlaceOrdersPrice(),
-                    category[basketStock.getStCategory()],
-                    basketStock.getStUnit());
+                System.out.printf("%-10s%-20s%-10d%-10d%-10d%-20s%-10s\n",
+                        stockNo,
+                        basketStock.getStName(),
+                        basketStock.getStPrice(),
+                        basketStock.getPlaceOrdersQuantity(),
+                        basketStock.getPlaceOrdersPrice(),
+                        category[basketStock.getStCategory()],
+                        basketStock.getStUnit());
+            }
         }
 
         System.out.println("----------------------------------------------------------------------");
