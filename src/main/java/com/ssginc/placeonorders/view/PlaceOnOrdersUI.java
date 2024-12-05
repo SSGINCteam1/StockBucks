@@ -719,7 +719,7 @@ public class PlaceOnOrdersUI {
         System.out.println("----------------------------------------------------------------------------------------------------------");
 
         for (PlaceOnOrdersHistoryDTO stock : list) {
-            System.out.printf("%-8s%-8s%-20s%-8s%-8s%-15s%-15s%-10s%-20s\n",
+            System.out.printf("%-8s%-8s%-20s%-8s%-8s%-15s%-15s\n",
                     stock.getPoNo(),
                     stock.getStNo(),
                     stock.getStName(),
