@@ -411,8 +411,10 @@ public class PlaceOnOrdersUI {
     private int calculateTotalPrice(List<SelectBasketListDTO> basketList) {
         int totalPrice = 0;
 
-        for (SelectBasketListDTO basketStock : basketList) {
-            totalPrice += basketStock.getPlaceOrdersPrice();
+        if (basketList != null) {
+            for (SelectBasketListDTO basketStock : basketList) {
+                totalPrice += basketStock.getPlaceOrdersPrice();
+            }
         }
 
         return totalPrice;
