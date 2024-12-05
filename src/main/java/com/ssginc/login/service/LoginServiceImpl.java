@@ -2,7 +2,6 @@ package com.ssginc.login.service;
 
 import com.ssginc.login.model.dao.LoginDAO;
 import com.ssginc.login.model.dto.UsersDTO;
-import com.ssginc.login.model.dto.UsersDTOTest;
 import com.ssginc.util.HikariCPDataSource;
 
 import javax.sql.DataSource;
@@ -18,7 +17,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     @Override
-    public int insertUsers(UsersDTOTest user) {
+    public int insertUsers(UsersDTO user) {
         int res = 0;
         try(Connection con = dataSource.getConnection()) {
             res = loginDAO.insertUsers(con, user);

@@ -1,9 +1,14 @@
 package com.ssginc.common.view;
 
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
 public class CommonUI {
+    private static int consoleWidth = 60;
+
     public static void displayExitMessage() {
-        System.out.println("시스템을 종료합니다.");
-        System.out.println("이용해주셔서 감사합니다.");
+        System.out.println("\n>> [시스템을 종료합니다.]");
+        System.out.println("[이용해주셔서 감사합니다.]");
     }
 
     public static void displayAgainOrExitMessage() {
@@ -12,11 +17,18 @@ public class CommonUI {
     }
 
     public static void displayWrongSelectMessage() {
-        System.out.println("잘못된 입력입니다. 다시 입력해주세요");
+        System.out.println("\n>> [잘못된 입력입니다. 다시 입력해주세요.]");
     }
 
     public static void displayGoBackMessage() {
-        System.out.println("상위 메뉴로 이동합니다.");
+        System.out.println("\n>> [상위 메뉴로 이동합니다.]");
+    }
+
+    public static void printCentered(String text) {
+        int padding = (consoleWidth - text.length()) / 2;
+        String format = "%" + padding + "s%s%" + padding + "s";
+        System.out.printf(format, "", text, "");
+        System.out.println(); // 줄바꿈
     }
 
     /**
@@ -26,8 +38,6 @@ public class CommonUI {
      */
     public static void displayPageBar(int currentPage, int totalPages) {
         StringBuffer sb = new StringBuffer();
-
-        sb.append("\t\t\t");
 
         // 이전 페이지 표시
         if (currentPage > 1) {
@@ -51,8 +61,29 @@ public class CommonUI {
             sb.append("[다음]");
         }
 
-        sb.append("\t\t\t");
+        CommonUI.printCentered(sb.toString());
+    }
 
-        System.out.println(sb);
+
+
+    /**
+     * 숫자만 입력받을 수 있도록 예외처리
+     * @return
+     */
+    public static int safeInput(Scanner sc) {
+        int input = 0;
+
+        while (true) {
+            try {
+                System.out.print(">> ");
+                input = sc.nextInt(); // 입력값 받기
+                break; // 유효한 입력값이면 반복 종료
+            } catch (InputMismatchException e) {
+                System.out.println(ANSIStyle.RED + ">> [숫자만 입력 가능합니다. 다시 시도해주세요.]" + ANSIStyle.RESET);
+                sc.nextLine(); // 버퍼 정리
+            }
+        }
+
+        return input;
     }
 }
