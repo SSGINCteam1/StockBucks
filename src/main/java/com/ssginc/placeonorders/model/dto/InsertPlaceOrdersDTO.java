@@ -1,12 +1,11 @@
 package com.ssginc.placeonorders.model.dto;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-public class HoonInsertPlaceOrdersDTO {
+public class InsertPlaceOrdersDTO {
 
     private int result;
 

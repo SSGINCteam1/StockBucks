@@ -24,7 +24,6 @@ public class ManageProductDAO {
         try {
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
-            System.out.println("3. sql준비  => sql객체생성!");
 
             while (rs.next()) {
 
@@ -96,12 +95,12 @@ public class ManageProductDAO {
             vo.setSt_unit(st_unit);
             vo.setSt_state(st_state);
             list.add(vo);
-            //품목번호                 품목명       	카테고리       	    가격            단위		 발주가능여부
+            //품목번호                 품목명          카테고리               가격            단위       발주가능여부
         }
-       ps.close();
+        ps.close();
         con.close();
         return list;
-}
+    }
 
     public ArrayList<ManageProductVO> selectKeyword(String st_name) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
@@ -157,31 +156,22 @@ public class ManageProductDAO {
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, st_name); //
         ps.setInt(2, st_no);
-        System.out.println("3. sql준비 --> sql객체 성공!");
 
         int result = ps.executeUpdate();
-        System.out.println("4. sql전송 성공!");
-        System.out.println("실행된 row수 --> " + result + "개");
-        System.out.println("==============> " + result); //0, 1~
         ps.close();
         con.close(); //관련 자원들 메모리에서 해제!
 
 
         return result > 0;
     }
-
-
     public boolean delete(int st_no) throws Exception {
         Connection con = hikariCPDataSource.getDataSource().getConnection();
         String sql = "delete from stock where st_no = ?";
 
-         PreparedStatement ps = con.prepareStatement(sql);
+        PreparedStatement ps = con.prepareStatement(sql);
         ps.setInt(1, st_no);
-        System.out.println("3. sql준비 --> sql객체 성공!");
 
         int result = ps.executeUpdate();
-        System.out.println("4. sql전송 성공!");
-        System.out.println("실행된 row수 --> " + result + "개");
 
         ps.close();
         con.close();

@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HoonSelectBasketListDTO {
+public class SelectBasketListDTO {
 
     private int stNo;                   // 제품번호
 
